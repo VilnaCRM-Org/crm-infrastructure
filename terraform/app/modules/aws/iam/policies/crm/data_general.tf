@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "general_policy_doc" {
       "dynamodb:GetItem",
       "dynamodb:DeleteItem"
     ]
-    resources = ["arn:aws:dynamodb:${var.region}:${local.account_id}:table/terraform_locks"]
+    resources = ["arn:aws:dynamodb:${var.region}:${local.account_id}:table/terraform_crm_locks"]
   }
   statement {
     sid    = "TerraformStateGetS3Policy"

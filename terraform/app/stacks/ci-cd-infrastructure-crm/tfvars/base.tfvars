@@ -12,7 +12,7 @@ continuous_deployment_policy_header = "staging"
 
 script_dir = "./aws/scripts"
 
-dynamodb_table_name = "terraform_locks"
+dynamodb_table_name = "terraform_crm_locks"
 
 lambda_python_version                 = "python3.12"
 lambda_reserved_concurrent_executions = -1
