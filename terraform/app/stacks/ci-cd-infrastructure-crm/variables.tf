@@ -186,7 +186,7 @@ variable "dynamodb_table_name" {
 
 variable "create_slack_notification" {
   description = "Responsible for creating Slack notifications"
-  type        = string
+  type        = bool
 }
 
 variable "tags" {
