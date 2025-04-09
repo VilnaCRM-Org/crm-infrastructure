@@ -2,7 +2,7 @@ name: security
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   checkov:
@@ -17,3 +17,4 @@ jobs:
         uses: bridgecrewio/checkov-action@master
         with:
           directory: terraform
+          download_external_modules: true

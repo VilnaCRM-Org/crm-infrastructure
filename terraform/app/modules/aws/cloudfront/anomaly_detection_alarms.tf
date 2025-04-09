@@ -16,7 +16,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_requests_anomaly_detection" {
 
   metric_query {
     id          = "m1"
-    return_data = "true"
+    return_data = true
     metric {
       metric_name = "Requests"
       namespace   = "AWS/CloudFront"

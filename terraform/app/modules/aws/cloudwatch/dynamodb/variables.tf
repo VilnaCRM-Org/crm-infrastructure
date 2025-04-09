@@ -14,7 +14,7 @@ variable "dynamodb_table_name" {
 }
 
 variable "logging_bucket_id" {
-  description = "Dynamodb Table Name for Logs"
+  description = "ID of the logging bucket"
   type        = string
 }
 
