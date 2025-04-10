@@ -6,6 +6,7 @@ tags = {
 }
 domain_name           = "app.vilnacrmtest.com"
 s3_bucket_custom_name = "app.vilnacrmtest.com"
+hosted_zone_name      = "vilnacrmtest.com"
 
 cloudfront_custom_error_responses = [
   {

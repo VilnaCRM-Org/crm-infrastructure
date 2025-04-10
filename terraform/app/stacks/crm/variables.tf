@@ -103,3 +103,7 @@ variable "tags" {
   type        = map(any)
 }
 
+variable "hosted_zone_name" {
+  type        = string
+  description = "Hosted Zone Name" 
+}
