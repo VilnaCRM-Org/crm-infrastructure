@@ -9,6 +9,8 @@ module "github_oidc" {
   oidc_role_attach_policies = [aws_iam_policy.codepipeline_policy.arn]
 
   tags = var.tags
+
+  oidc_provider_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
 }
 
 resource "github_actions_secret" "aws_codepipeline_role_arn" {
