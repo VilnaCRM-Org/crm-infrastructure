@@ -1,6 +1,6 @@
 resource "aws_wafv2_web_acl" "waf_web_acl" {
   provider = aws.us-east-1
-  name     = "wafv2-web-acl"
+  name     = "wafv2-web-acl-crm"
   scope    = "CLOUDFRONT"
 
   default_action {

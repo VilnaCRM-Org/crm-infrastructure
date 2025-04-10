@@ -57,7 +57,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_allowed_requests_anomaly_detection
       stat        = "Average"
       dimensions = {
         Rule   = "ALL"
-        WebACL = "wafv2-web-acl"
+        WebACL = "wafv2-web-acl-crm"
       }
     }
   }
@@ -89,7 +89,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_blocked_requests_anomaly_detection
       stat        = "Average"
       dimensions = {
         Rule   = "ALL"
-        WebACL = "wafv2-web-acl"
+        WebACL = "wafv2-web-acl-crm"
       }
     }
   }

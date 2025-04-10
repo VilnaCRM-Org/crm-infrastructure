@@ -53,7 +53,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_country_blocked_requests" {
   treat_missing_data  = "notBreaching"
   dimensions = {
     Country = "RU"
-    WebACL  = "wafv2-web-acl"
+    WebACL  = "wafv2-web-acl-crm"
   }
 }
 
@@ -71,7 +71,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_high_rate_blocked_requests" {
   actions_enabled     = true
   treat_missing_data  = "notBreaching"
   dimensions = {
-    WebACL = "wafv2-web-acl"
+    WebACL = "wafv2-web-acl-crm"
   }
 }
 
@@ -91,7 +91,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_scanning_alarm" {
   alarm_actions       = [aws_sns_topic.cloudwatch_alarm_notifications.arn]
   dimensions = {
     Rule   = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
-    WebACL = "wafv2-web-acl"
+    WebACL = "wafv2-web-acl-crm"
   }
 }
 
@@ -120,7 +120,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_bots_alarm" {
       stat        = "Average"
       dimensions = {
         VerificationStatus = "bot:unverified"
-        WebACL             = "wafv2-web-acl"
+        WebACL             = "wafv2-web-acl-crm"
         BotCategory        = "ALL_BOTS"
       }
     }
@@ -135,7 +135,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_bots_alarm" {
       stat        = "Average"
       dimensions = {
         VerificationStatus = "bot:verified"
-        WebACL             = "wafv2-web-acl"
+        WebACL             = "wafv2-web-acl-crm"
         BotCategory        = "ALL_BOTS"
       }
     }

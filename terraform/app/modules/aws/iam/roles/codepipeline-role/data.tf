@@ -249,7 +249,8 @@ data "aws_iam_policy_document" "terraform_ci_cd_policy_document" {
       "iam:TagRole",
       "iam:UpdateRole",
       "iam:ListAttachedRolePolicies",
-      "iam:ListRolePolicies"
+      "iam:ListRolePolicies",
+      "iam:CreateRole"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/ci-cd-infra-crm-${var.environment}-codebuild-terraform-role",

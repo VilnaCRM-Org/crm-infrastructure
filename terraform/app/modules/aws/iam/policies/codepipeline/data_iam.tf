@@ -29,7 +29,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "arn:aws:iam::${local.account_id}:role/github-actions-crm-role",
       "arn:aws:iam::${local.account_id}:role/crm-${var.environment}-codepipeline-role-sandbox-crm-deletion-${var.environment}",
       "arn:aws:iam::${local.account_id}:role/crm-${var.environment}-codebuild-role-sandbox-crm-deletion-${var.environment}",
-      "arn:aws:iam::${local.account_id}:role/sandbox-crm-cleanup-function-role"
+      "arn:aws:iam::${local.account_id}:role/sandbox-crm-cleanup-function-role",
+      "arn:aws:iam::${local.account_id}:role/ci-cd-crm-${var.environment}-github-oidc-codepipeline-role"
     ]
   }
   statement {

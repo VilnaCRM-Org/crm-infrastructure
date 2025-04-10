@@ -78,11 +78,11 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
       "wafv2:UpdateWebACL"
     ]
     resources = [
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/ipset/wafv2-web-acl/*",
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/managedruleset/wafv2-web-acl/*",
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/regexpatternset/wafv2-web-acl/*",
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/rulegroup/wafv2-web-acl/*",
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/webacl/wafv2-web-acl/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/ipset/wafv2-web-acl-crm/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/managedruleset/wafv2-web-acl-crm/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/regexpatternset/wafv2-web-acl-crm/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/rulegroup/wafv2-web-acl-crm/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/webacl/wafv2-web-acl-crm/*",
     ]
   }
   statement {
@@ -96,7 +96,7 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
     ]
     resources = [
       "arn:aws:wafv2:us-east-1:${local.account_id}:global/managedruleset/*/*",
-      "arn:aws:wafv2:us-east-1:${local.account_id}:global/webacl/wafv2-web-acl/*"
+      "arn:aws:wafv2:us-east-1:${local.account_id}:global/webacl/wafv2-web-acl-crm/*"
     ]
   }
   statement {
@@ -109,7 +109,7 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
       "wafv2:UpdateWebACL"
     ]
     resources = [
-      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/webacl/wafv2-web-acl/*"
+      "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/webacl/wafv2-web-acl-crm/*"
     ]
   }
   statement {
@@ -124,7 +124,7 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
       "wafv2:TagResource"
     ]
     resources = [
-      "arn:aws:wafv2:us-east-1:${local.account_id}:global/webacl/wafv2-web-acl/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:global/webacl/wafv2-web-acl-crm/*",
     ]
   }
   statement {
