@@ -22,3 +22,8 @@ variable "alias_zone_id" {
   type        = string
   description = "Zone ID for the record alias"
 }
+
+variable "hosted_zone_name" {
+  type        = string
+  description = "The base domain name used to look up the Route53 hosted zone"
+}
