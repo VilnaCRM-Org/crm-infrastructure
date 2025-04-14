@@ -8,14 +8,14 @@ from diagrams.saas.chat import Slack
 from diagrams.aws.network import CF
 
 with Diagram(
-    "\nCI/CD Website pipeline Test Design VilnaCRM",
+    "\nCI/CD CRM pipeline Production Design VilnaCRM",
     show=False,
-    filename="../../img/test/ci_cd_website_pipeline_design",
+    filename="../../img/prod/ci_cd_crm_pipeline_design",
 ):
     gh = Github("Github Repository")
     codepipe = Codepipeline("AWS CodePipeline")
     s3 = SimpleStorageServiceS3("AWS S3 \n Artifact Bucket")
-    ci_cd_website_codepipeline = Cluster("CI/CD Website CodePipeline")
+    ci_cd_website_codepipeline = Cluster("CI/CD CRM CodePipeline")
     chatbot = Chatbot("AWS chatbot \n Send notifies \n to Slack")
     sns = SNS("AWS SNS \n Notify about \n pipeline progress")
 
@@ -27,7 +27,6 @@ with Diagram(
             Codebuild("AWS CodeBuild \n batch-lhci-leak"),
             Codebuild("AWS CodeBuild \n batch-pw-load"),
             Codebuild("AWS CodeBuild \n release"),
-            Codebuild("AWS CodeBuild \n trigger"),
         ]
 
     gh >> codepipe
@@ -39,23 +38,20 @@ with Diagram(
         >> builders[3]
         >> builders[4]
         >> builders[5]
-        >> builders[6]
     )
 
     builders[1] >> SimpleStorageServiceS3(
-        "AWS S3 \n Website Static Files Staging Bucket"
+        "AWS S3 \n CRM Static Files Staging Bucket"
     )
 
-    builders[6] >> CF("AWS Cloudfront \nDistributions Update")
-
-    builders[6] >> Codebuild("AWS CodeBuild \n terraspace down website")
+    builders[5] >> CF("AWS Cloudfront \nDistributions Update")
 
     codepipe >> builders[0]
 
     for builder in builders:
         builder >> s3
 
-    builders[6] >> sns
+    builders[5] >> sns
 
     sns >> chatbot
 
