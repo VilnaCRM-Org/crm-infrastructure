@@ -83,6 +83,7 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
       "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/regexpatternset/wafv2-web-acl-crm/*",
       "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/rulegroup/wafv2-web-acl-crm/*",
       "arn:aws:wafv2:us-east-1:${local.account_id}:CLOUDFRONT/webacl/wafv2-web-acl-crm/*",
+      "arn:aws:wafv2:us-east-1:${local.account_id}:global/webacl/wafv2-web-acl-crm/*"
     ]
   }
   statement {

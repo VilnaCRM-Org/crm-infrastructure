@@ -1,13 +1,13 @@
 module "codepipeline_policies" {
   source = "../../modules/aws/iam/policies/codepipeline"
 
-  policy_prefix              = "${var.environment}-codepipeline-user"
-  project_name               = var.project_name
+  policy_prefix          = "${var.environment}-codepipeline-user"
+  project_name           = var.project_name
   crm_project_name       = var.crm_project_name
-  ci_cd_project_name         = var.ci_cd_project_name
+  ci_cd_project_name     = var.ci_cd_project_name
   ci_cd_crm_project_name = var.ci_cd_crm_project_name
-  region                     = var.region
-  environment                = var.environment
+  region                 = var.region
+  environment            = var.environment
 
   tags = var.tags
 }

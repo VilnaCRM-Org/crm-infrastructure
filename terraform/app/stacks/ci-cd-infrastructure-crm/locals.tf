@@ -43,44 +43,44 @@ locals {
   crm_infra_build_projects = {
     validate = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
+        "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "PYTHON_VERSION"                         = var.runtime_versions.python,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "GOLANG_VERSION"                         = var.runtime_versions.golang,
-        "SCRIPT_DIR"                             = var.script_dir,
+        "TS_ENV"                             = var.environment,
+        "AWS_DEFAULT_REGION"                 = var.region,
+        "PYTHON_VERSION"                     = var.runtime_versions.python,
+        "RUBY_VERSION"                       = var.runtime_versions.ruby,
+        "GOLANG_VERSION"                     = var.runtime_versions.golang,
+        "SCRIPT_DIR"                         = var.script_dir,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/validate.yml" })
 
     plan = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
+        "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "SCRIPT_DIR"                             = var.script_dir,
+        "TS_ENV"                             = var.environment,
+        "AWS_DEFAULT_REGION"                 = var.region,
+        "RUBY_VERSION"                       = var.runtime_versions.ruby,
+        "SCRIPT_DIR"                         = var.script_dir,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/plan.yml" })
 
     up = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
+        "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "PYTHON_VERSION"                         = var.runtime_versions.python,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "SCRIPT_DIR"                             = var.script_dir,
+        "TS_ENV"                             = var.environment,
+        "AWS_DEFAULT_REGION"                 = var.region,
+        "PYTHON_VERSION"                     = var.runtime_versions.python,
+        "RUBY_VERSION"                       = var.runtime_versions.ruby,
+        "SCRIPT_DIR"                         = var.script_dir,
         "CI_CD_CRM_PIPELINE_NAME"            = "${var.ci_cd_crm_project_name}-pipeline",
-        "CLOUDFRONT_REGION"                      = var.cloudfront_configuration.region,
+        "CLOUDFRONT_REGION"                  = var.cloudfront_configuration.region,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/up.yml" })
@@ -89,53 +89,53 @@ locals {
   ci_cd_infra_build_projects = {
     validate = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
-        "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID"   = var.CODEPIPELINE_SLACK_CHANNEL_ID,
-        "TF_VAR_REPORT_SLACK_CHANNEL_ID"         = var.REPORT_SLACK_CHANNEL_ID,
-        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID"   = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
-        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "PYTHON_VERSION"                         = var.runtime_versions.python,
-        "GOLANG_VERSION"                         = var.runtime_versions.golang,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "SCRIPT_DIR"                             = var.script_dir,
+        "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
+        "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID" = var.CODEPIPELINE_SLACK_CHANNEL_ID,
+        "TF_VAR_REPORT_SLACK_CHANNEL_ID"       = var.REPORT_SLACK_CHANNEL_ID,
+        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID" = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
+        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID"   = var.CRM_ALERTS_SLACK_CHANNEL_ID,
+        "TS_ENV"                               = var.environment,
+        "AWS_DEFAULT_REGION"                   = var.region,
+        "PYTHON_VERSION"                       = var.runtime_versions.python,
+        "GOLANG_VERSION"                       = var.runtime_versions.golang,
+        "RUBY_VERSION"                         = var.runtime_versions.ruby,
+        "SCRIPT_DIR"                           = var.script_dir,
         }
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/validate.yml" })
 
     plan = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
-        "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID"   = var.CODEPIPELINE_SLACK_CHANNEL_ID,
-        "TF_VAR_REPORT_SLACK_CHANNEL_ID"         = var.REPORT_SLACK_CHANNEL_ID,
-        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID"   = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
-        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "PYTHON_VERSION"                         = var.runtime_versions.python,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "SCRIPT_DIR"                             = var.script_dir,
-        "GITHUB_OWNER"                           = var.source_repo_owner,
+        "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
+        "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID" = var.CODEPIPELINE_SLACK_CHANNEL_ID,
+        "TF_VAR_REPORT_SLACK_CHANNEL_ID"       = var.REPORT_SLACK_CHANNEL_ID,
+        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID" = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
+        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID"   = var.CRM_ALERTS_SLACK_CHANNEL_ID,
+        "TS_ENV"                               = var.environment,
+        "AWS_DEFAULT_REGION"                   = var.region,
+        "PYTHON_VERSION"                       = var.runtime_versions.python,
+        "RUBY_VERSION"                         = var.runtime_versions.ruby,
+        "SCRIPT_DIR"                           = var.script_dir,
+        "GITHUB_OWNER"                         = var.source_repo_owner,
         }
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/plan.yml" })
 
     up = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "ROLE_ARN"                               = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
-        "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
-        "TF_VAR_REPORT_SLACK_CHANNEL_ID"         = var.REPORT_SLACK_CHANNEL_ID,
-        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID"   = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
-        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-        "TS_ENV"                                 = var.environment,
-        "AWS_DEFAULT_REGION"                     = var.region,
-        "PYTHON_VERSION"                         = var.runtime_versions.python,
-        "RUBY_VERSION"                           = var.runtime_versions.ruby,
-        "SCRIPT_DIR"                             = var.script_dir,
-        "GITHUB_OWNER"                           = var.source_repo_owner,
+        "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
+        "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
+        "TF_VAR_REPORT_SLACK_CHANNEL_ID"       = var.REPORT_SLACK_CHANNEL_ID,
+        "TF_VAR_CI_CD_ALERTS_SLACK_CHANNEL_ID" = var.CI_CD_ALERTS_SLACK_CHANNEL_ID,
+        "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID"   = var.CRM_ALERTS_SLACK_CHANNEL_ID,
+        "TS_ENV"                               = var.environment,
+        "AWS_DEFAULT_REGION"                   = var.region,
+        "PYTHON_VERSION"                       = var.runtime_versions.python,
+        "RUBY_VERSION"                         = var.runtime_versions.ruby,
+        "SCRIPT_DIR"                           = var.script_dir,
+        "GITHUB_OWNER"                         = var.source_repo_owner,
         }
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/up.yml" })
@@ -144,15 +144,15 @@ locals {
   ci_cd_crm_build_projects = {
     batch_unit_mutation_lint = merge(local.ubuntu_based_build,
       { env_variables = {
-        "CI"                            = 1
-        "NODEJS_VERSION"                = var.runtime_versions.nodejs,
-        "PYTHON_VERSION"                = var.runtime_versions.python,
-        "PW_TEST_HTML_REPORT_OPEN"      = "never",
+        "CI"                        = 1
+        "NODEJS_VERSION"            = var.runtime_versions.nodejs,
+        "PYTHON_VERSION"            = var.runtime_versions.python,
+        "PW_TEST_HTML_REPORT_OPEN"  = "never",
         "CRM_URL"                   = var.crm_url,
-        "ENVIRONMENT"                   = var.environment,
-        "ACCOUNT_ID"                    = local.account_id,
-        "SCRIPT_DIR"                    = var.script_dir,
-        "TEST_REPORTS_BUCKET"           = module.test_reports_bucket.id,
+        "ENVIRONMENT"               = var.environment,
+        "ACCOUNT_ID"                = local.account_id,
+        "SCRIPT_DIR"                = var.script_dir,
+        "TEST_REPORTS_BUCKET"       = module.test_reports_bucket.id,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
         "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
         }
@@ -161,17 +161,17 @@ locals {
 
     deploy = merge(local.ubuntu_based_build,
       { env_variables = {
-        "CI"                            = 1
-        "NODEJS_VERSION"                = var.runtime_versions.nodejs,
-        "PYTHON_VERSION"                = var.runtime_versions.python,
-        "BUCKET_NAME"                   = var.bucket_name,
-        "SCRIPT_DIR"                    = var.script_dir,
-        "ALARM_NAME"                    = local.alarm_name,
+        "CI"                        = 1
+        "NODEJS_VERSION"            = var.runtime_versions.nodejs,
+        "PYTHON_VERSION"            = var.runtime_versions.python,
+        "BUCKET_NAME"               = var.bucket_name,
+        "SCRIPT_DIR"                = var.script_dir,
+        "ALARM_NAME"                = local.alarm_name,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
         "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
-        "CLOUDFRONT_REGION"             = var.cloudfront_configuration.region,
-        "CLOUDFRONT_WEIGHT"             = var.continuous_deployment_policy_weight,
-        "CLOUDFRONT_HEADER"             = var.continuous_deployment_policy_header,
+        "CLOUDFRONT_REGION"         = var.cloudfront_configuration.region,
+        "CLOUDFRONT_WEIGHT"         = var.continuous_deployment_policy_weight,
+        "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/deploy.yml" })
@@ -185,18 +185,18 @@ locals {
 
     batch_pw_load = merge(local.ubuntu_based_build,
       { env_variables = {
-        "CI"                            = 1
-        "NODEJS_VERSION"                = var.runtime_versions.nodejs,
-        "PYTHON_VERSION"                = var.runtime_versions.python,
-        "GOLANG_VERSION"                = var.runtime_versions.golang,
+        "CI"                        = 1
+        "NODEJS_VERSION"            = var.runtime_versions.nodejs,
+        "PYTHON_VERSION"            = var.runtime_versions.python,
+        "GOLANG_VERSION"            = var.runtime_versions.golang,
         "CRM_URL"                   = var.crm_url,
-        "ENVIRONMENT"                   = var.environment,
-        "ACCOUNT_ID"                    = local.account_id,
-        "SCRIPT_DIR"                    = var.script_dir,
-        "PW_TEST_HTML_REPORT_OPEN"      = "never",
-        "CLOUDFRONT_HEADER"             = var.continuous_deployment_policy_header,
-        "LHCI_REPORTS_BUCKET"           = module.lhci_reports_bucket.id,
-        "TEST_REPORTS_BUCKET"           = module.test_reports_bucket.id,
+        "ENVIRONMENT"               = var.environment,
+        "ACCOUNT_ID"                = local.account_id,
+        "SCRIPT_DIR"                = var.script_dir,
+        "PW_TEST_HTML_REPORT_OPEN"  = "never",
+        "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "LHCI_REPORTS_BUCKET"       = module.lhci_reports_bucket.id,
+        "TEST_REPORTS_BUCKET"       = module.test_reports_bucket.id,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
         "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
         }
@@ -205,16 +205,16 @@ locals {
 
     batch_lhci_leak = merge(local.ubuntu_based_build,
       { env_variables = {
-        "CI"                            = 1
-        "NODEJS_VERSION"                = var.runtime_versions.nodejs,
-        "PYTHON_VERSION"                = var.runtime_versions.python,
+        "CI"                        = 1
+        "NODEJS_VERSION"            = var.runtime_versions.nodejs,
+        "PYTHON_VERSION"            = var.runtime_versions.python,
         "CRM_URL"                   = var.crm_url,
-        "ENVIRONMENT"                   = var.environment,
-        "ACCOUNT_ID"                    = local.account_id,
-        "SCRIPT_DIR"                    = var.script_dir,
-        "CLOUDFRONT_HEADER"             = var.continuous_deployment_policy_header,
-        "LHCI_REPORTS_BUCKET"           = module.lhci_reports_bucket.id,
-        "TEST_REPORTS_BUCKET"           = module.test_reports_bucket.id,
+        "ENVIRONMENT"               = var.environment,
+        "ACCOUNT_ID"                = local.account_id,
+        "SCRIPT_DIR"                = var.script_dir,
+        "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "LHCI_REPORTS_BUCKET"       = module.lhci_reports_bucket.id,
+        "TEST_REPORTS_BUCKET"       = module.test_reports_bucket.id,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
         "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
         }
@@ -233,13 +233,13 @@ locals {
   }
 
   crm_infra_build_project_down_env_variables = {
-    "ROLE_ARN"                               = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
-    "TF_VAR_SLACK_WORKSPACE_ID"              = var.SLACK_WORKSPACE_ID,
+    "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
+    "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
     "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
-    "TS_ENV"                                 = var.environment,
-    "AWS_DEFAULT_REGION"                     = var.region,
-    "RUBY_VERSION"                           = var.runtime_versions.ruby,
-    "SCRIPT_DIR"                             = var.script_dir,
+    "TS_ENV"                             = var.environment,
+    "AWS_DEFAULT_REGION"                 = var.region,
+    "RUBY_VERSION"                       = var.runtime_versions.ruby,
+    "SCRIPT_DIR"                         = var.script_dir,
   }
 
   codebuild_cloudfront_rollback_project_env_variables = {
@@ -274,9 +274,9 @@ locals {
         env_variables = merge(
           local.common_sandbox_env_variables,
           {
-            "CI"                          = "1",
-            "NODEJS_VERSION"              = var.runtime_versions.nodejs,
-            "BUCKET_NAME"                 = var.bucket_name,
+            "CI"                      = "1",
+            "NODEJS_VERSION"          = var.runtime_versions.nodejs,
+            "BUCKET_NAME"             = var.bucket_name,
             "CRM_GIT_REPOSITORY_LINK" = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
           }
         )

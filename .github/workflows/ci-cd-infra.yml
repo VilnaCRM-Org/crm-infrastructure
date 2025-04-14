@@ -24,7 +24,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_CI_CD_INFRA_ROLE_TO_ASSUME_TEST }}
+          role-to-assume: arn:aws:iam::${{vars.TEST_AWS_ACCOUNT_ID}}:role/ci-cd-infra-crm-trigger-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Trigger CodePipeline

@@ -3,7 +3,7 @@ module "dns" {
 
   domain_name      = var.domain_name
   hosted_zone_name = var.hosted_zone_name
-  
+
   ttl_validation     = var.ttl_validation
   ttl_route53_record = var.ttl_route53_record
   alias_zone_id      = var.alias_zone_id

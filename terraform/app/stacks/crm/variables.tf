@@ -105,5 +105,5 @@ variable "tags" {
 
 variable "hosted_zone_name" {
   type        = string
-  description = "Hosted Zone Name" 
+  description = "Hosted Zone Name"
 }

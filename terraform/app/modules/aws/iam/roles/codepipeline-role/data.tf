@@ -205,7 +205,6 @@ data "aws_iam_policy_document" "terraform_ci_cd_policy_document" {
       "iam:AddUserToGroup",
       "iam:AttachGroupPolicy",
       "iam:ListAttachedGroupPolicies",
-      "iam:AddUserToGroup",
       "iam:DeleteGroup"
     ]
     resources = [
