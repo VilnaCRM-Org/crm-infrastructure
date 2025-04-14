@@ -40,9 +40,7 @@ with Diagram(
         >> builders[5]
     )
 
-    builders[1] >> SimpleStorageServiceS3(
-        "AWS S3 \n CRM Static Files Staging Bucket"
-    )
+    builders[1] >> SimpleStorageServiceS3("AWS S3 \n CRM Static Files Staging Bucket")
 
     builders[5] >> CF("AWS Cloudfront \nDistributions Update")
 
