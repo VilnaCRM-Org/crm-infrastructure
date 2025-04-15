@@ -26,7 +26,7 @@ if [ "$IS_PULL_REQUEST" -eq 1 ]; then
             echo "Error: Failed to configure bucket ACL."
             exit 1
         fi
-        if ! aws s3api put-bucket-crm --bucket "$PROJECT_NAME-$BRANCH_NAME" --crm-configuration file://crm_configuration.json --region "$AWS_DEFAULT_REGION"; then
+        if ! aws s3api put-bucket-website --bucket "$PROJECT_NAME-$BRANCH_NAME" --crm-configuration file://crm_configuration.json --region "$AWS_DEFAULT_REGION"; then
             echo "Error: Failed to configure static crm hosting."
             exit 1
         fi
