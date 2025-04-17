@@ -1,0 +1,34 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: $PYTHON_VERSION
+      ruby: $RUBY_VERSION
+    commands:
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/credentials.sh"
+      - "dnf install -y yum-utils"
+      - "pip install python-dotenv"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/terraform_installation.sh"
+  build:
+    commands:
+      - "cd ${CODEBUILD_SRC_DIR}"
+      - "echo ## TERRASPACE UP : Bringing up the infrastructure"
+      - 'make terraspace-up-plan stack="crm" plan="crm.plan"'
+      - 'make terraspace-output-file stack="crm" out=".terraform.env"'
+      - "cd terraform"
+      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/distribution_deploy.py"
+      - "echo Triggering CI-CD Crm Pipeline"
+      - "aws codepipeline start-pipeline-execution --name $CI_CD_CRM_PIPELINE_NAME || { echo 'Error starting CodePipeline'; exit 1; }"
+
+artifacts:
+  files:
+    - "**/*"
+cache:
+  paths:
+    - "/bin"
+    - "/usr/local/bin"
+    - "/root/.terraform"
+    - "/root/.cache"
+    - "/root/.gem"
+    - "/usr/local/bundle"
