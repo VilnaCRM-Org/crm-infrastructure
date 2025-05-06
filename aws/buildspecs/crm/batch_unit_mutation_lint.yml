@@ -1,0 +1,14 @@
+batch:
+  fast-fail: false
+  build-list:
+    - identifier: mutation
+      buildspec: "./aws/buildspecs/crm/batches/mutation.yml"
+      ignore-failure: false
+
+    - identifier: unit
+      buildspec: "./aws/buildspecs/crm/batches/unit.yml"
+      ignore-failure: false
+
+    - identifier: lint
+      buildspec: "./aws/buildspecs/crm/batches/lint.yml"
+      ignore-failure: false

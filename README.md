@@ -206,7 +206,6 @@ Execute `make` or `make help` to see the full list of project commands.
 The list of the `make` possibilities:
 
 ```bash
-
   codebuild-local-set-up         Setting up CodeBuild Agent for testing buildspecs locally
   codebuild-run                  Running CodeBuild for specific buildspec. Example: make codebuild-run buildspec='aws/buildspecs/crm/buildspec_deploy.yml'
   tf-fmt                         Format terraform code recursively.
