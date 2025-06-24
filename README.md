@@ -3,9 +3,9 @@
 
 # VilnaCRM Infrastructure
 
-![Latest Stable Version](https://poser.pugx.org/VilnaCRM-Org/infrastructure/v/stable.svg)
-[![Test status](https://github.com/VilnaCRM-Org/infrastructure/workflows/Tests/badge.svg)](https://github.com/VilnaCRM-Org/infrastructure/actions)
-[![codecov](https://codecov.io/gh/VilnaCRM-Org/infrastructure/branch/main/graph/badge.svg?token=J3SGCHIFD5)](https://codecov.io/gh/VilnaCRM-Org/infrastructure)
+![Latest Stable Version](https://poser.pugx.org/VilnaCRM-Org/crm-infrastructure/v/stable.svg)
+[![Test status](https://github.com/VilnaCRM-Org/crm-infrastructure/workflows/Tests/badge.svg)](https://github.com/VilnaCRM-Org/crm-infrastructure/actions)
+[![codecov](https://codecov.io/gh/VilnaCRM-Org/crm-infrastructure/branch/main/graph/badge.svg?token=J3SGCHIFD5)](https://codecov.io/gh/VilnaCRM-Org/crm-infrastructure)
 
 ## Possibilities
 
@@ -65,9 +65,9 @@ After creating your account you should do the following steps:
 
 1. **Create CodeStar Connection:**
 
-   Search -> Codepipeline -> Settings -> Connections -> Create connection -> Choose Github -> Enter Connection Name -> Install a new app -> Choose your account -> Authenticate -> Choose your app from Gihub Apps -> Connect.
+   Search -> Codepipeline -> Settings -> Connections -> Create connection -> Choose GitHub -> Enter Connection Name -> Install a new app -> Choose your account -> Authenticate -> Choose your app from GitHub Apps -> Connect.
 
-   Recommended connection name: "**Github**", otherwise you will need change in `tfvars`.
+   Recommended connection name: "**GitHub**", otherwise update your tfvars accordingly.
 
 2. **Connect your Slack workspace to AWS Chatbot:**
 
@@ -95,7 +95,7 @@ You can read [this article](https://www.linkedin.com/pulse/how-migrate-external-
 
 #### Slack Notifications
 ---
-If you don\`t need Slack Notification, just set `create_slack_notification` in `tfvars/base.tfvars` to `false`. variable to false and skip this step.
+If you don't need Slack notifications, set `create_slack_notification` in `tfvars/base.tfvars` to `false` and skip this step.
 
 **Otherwise,** you will need Workspace ID and Channel ID`s from your Slack.
 
@@ -156,9 +156,9 @@ Also before running you need to set up some local variables:
 
 Note: if you are not using Slack Notifications, skip those variables.
 
-### Bringing up the infrastucture
+### Bringing up the infrastructure
 
-After you configured everything you can deploy infrastructure by running such commands in order.
+After configuring everything, deploy the infrastructure by running:
 - `make terraspace-all-init`
 - `make terraspace-all-validate`
 - `make terraspace-all-up`
@@ -240,11 +240,11 @@ If the documentation doesn't cover what you need, search the [many questions on 
 
 Please disclose any vulnerabilities found responsibly – report security issues to the maintainers privately.
 
-See [SECURITY](https://github.com/VilnaCRM-Org/infrastructure/tree/main/SECURITY.md) and [Security advisories on GitHub](https://github.com/VilnaCRM-Org/infrastructure/security).
+See [SECURITY](https://github.com/VilnaCRM-Org/crm-infrastructure/tree/main/SECURITY.md) and [Security advisories on GitHub](https://github.com/VilnaCRM-Org/crm-infrastructure/security).
 
 ## Contributing
 
-Please submit bug reports, suggestions, and pull requests to the [GitHub issue tracker](https://github.com/VilnaCRM-Org/infrastructure/issues).
+Please submit bug reports, suggestions, and pull requests to the [GitHub issue tracker](https://github.com/VilnaCRM-Org/crm-infrastructure/issues).
 
 We're particularly interested in fixing edge cases, expanding test coverage, and updating translations.
 
