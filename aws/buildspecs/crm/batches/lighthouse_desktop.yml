@@ -1,41 +1,48 @@
 version: 0.2
 
+env:
+  variables:
+    ACCOUNT_ID: $ACCOUNT_ID
+    ENVIRONMENT: $ENVIRONMENT
+    TEST_REPORTS_BUCKET: $TEST_REPORTS_BUCKET
+    LHCI_REPORTS_BUCKET: $LHCI_REPORTS_BUCKET
+    CRM_GIT_REPOSITORY_LINK: $CRM_GIT_REPOSITORY_LINK
+
 phases:
   install:
-    runtime-versions:
-      nodejs: $NODEJS_VERSION
-      python: $PYTHON_VERSION
-
     commands:
-      - "apt update -y"
-      - "apt install -y libxss1 libappindicator3-1 libindicator7 fonts-liberation libdbus-1-3"
-      - "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-      - "apt install -y ./google-chrome*.deb"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
-      - "cd /codebuild-user/crm"
-      - "npm install -g @lhci/cli@0.13.x"
-      - "echo #### Owner Change"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/codebuild_user_owner_change.sh"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
+      - npm install -g pnpm@8.15.5 @lhci/cli@0.14.0
 
   build:
-    run-as: "codebuild-user"
     commands:
-      - "echo #### Set up environment"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo #### Test LightHouse Desktop"
-      - "export LHCI_DESKTOP_RUN=true && make lighthouse-desktop"
+      - cd ${CODEBUILD_SRC_DIR}/crm
+      - echo "🔧 Configuring Docker Compose files for user-defined network and port exposure..."
+      - |
+        # Ensure docker-compose.test.yml exposes port 3001 and uses app-net
+        if ! grep -q 'app-net' docker-compose.test.yml; then
+          echo 'networks:\n  app-net:\n    driver: bridge' >> docker-compose.test.yml
+        fi
+        if ! grep -q 'ports:' docker-compose.test.yml; then
+          sed -i '/^  prod:/a\    ports:\n      - "3001:3001"' docker-compose.test.yml
+        fi
+        if ! grep -q 'networks:' docker-compose.test.yml; then
+          sed -i '/^  prod:/a\    networks:\n      - app-net' docker-compose.test.yml
+        fi
+      - echo "🚀 Starting production services on user-defined network..."
+      - docker compose -f common-healthchecks.yml -f docker-compose.test.yml up -d
+      - echo "⏳ Waiting for prod service to be ready on port 3001..."
+      - npx wait-on http://localhost:3001
+      - echo "🧪 Verifying application accessibility from host..."
+      - curl -I http://localhost:3001
+      - echo "🔦 Running Lighthouse Desktop audit from build environment..."
+      - pnpm lhci autorun --config=lighthouserc.desktop.js
     finally:
-      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/reports.py"
-      - 'aws lambda invoke --function-name "ci-cd-crm-$ENVIRONMENT-reports-notification" --cli-binary-format raw-in-base64-out --payload file://payload.json output.txt'
+      - echo "📊 Generating test reports"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 
 artifacts:
   files:
-    - "/codebuild-user/crm/lhci-reports-desktop/**/*"
-
-cache:
-  paths:
-    - "/bin"
-    - "/usr/local/bin"
-    - "/codebuild-user/crm/node_modules"
-    - "/root/.cache"
-    - "/usr/local/bundle"
+    - "crm/lhci-reports-desktop/**/*"
