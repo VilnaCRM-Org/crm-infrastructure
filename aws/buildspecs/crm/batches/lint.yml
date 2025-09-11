@@ -1,33 +1,30 @@
 version: 0.2
 
+env:
+  variables:
+    ACCOUNT_ID: $ACCOUNT_ID
+    ENVIRONMENT: $ENVIRONMENT
+    TEST_REPORTS_BUCKET: $TEST_REPORTS_BUCKET
+    LHCI_REPORTS_BUCKET: $LHCI_REPORTS_BUCKET
+    CRM_GIT_REPOSITORY_LINK: $CRM_GIT_REPOSITORY_LINK
+    DIND: "1"
+
 phases:
   install:
-    runtime-versions:
-      nodejs: $NODEJS_VERSION
     commands:
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
-      - "cd /codebuild-user/crm"
-      - "echo #### Owner Change"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/codebuild_user_owner_change.sh"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
 
   build:
-    run-as: "codebuild-user"
     commands:
-      - "mkdir /codebuild-user/crm/lint-logs"
-      - "echo #### Running Lint"
-      - "export LINT_RUN=true && make format 2>&1 | tee lint-logs/format.log"
-      - "make lint-next 2>&1 | tee lint-logs/next.log"
-      - "make lint-tsc | tee lint-logs/tsc.log"
-      - "make lint-md | tee lint-logs/md.log"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
+      - "echo 'Running lint tests with new batch script'"
+      - "cd ${CODEBUILD_SRC_DIR}/crm"
+      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_lint.sh test-lint"
+    finally:
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 
 artifacts:
   files:
-    - "/codebuild-user/crm/lint-logs/**/*"
-
-cache:
-  paths:
-    - "/bin"
-    - "/usr/local/bin"
-    - "/codebuild-user/crm/node_modules"
-    - "/root/.cache"
-    - "/usr/local/bundle"
+    - "crm/**/*"

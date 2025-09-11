@@ -1,36 +1,30 @@
 version: 0.2
 
+env:
+  variables:
+    ACCOUNT_ID: $ACCOUNT_ID
+    ENVIRONMENT: $ENVIRONMENT
+    TEST_REPORTS_BUCKET: $TEST_REPORTS_BUCKET
+    LHCI_REPORTS_BUCKET: $LHCI_REPORTS_BUCKET
+    CRM_GIT_REPOSITORY_LINK: $CRM_GIT_REPOSITORY_LINK
+    DIND: "1"
+
 phases:
   install:
-    runtime-versions:
-      nodejs: $NODEJS_VERSION
-      python: $PYTHON_VERSION
     commands:
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
-      - "cd /codebuild-user/crm"
-      - "echo #### Owner Change"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/codebuild_user_owner_change.sh"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
 
   build:
-    run-as: "codebuild-user"
     commands:
-      - "echo #### Set up environment"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo #### Running Unit Test" # Reports folder: coverage/lcov-report/
-      - "export UNIT_RUN=true && make test-unit"
-
+      - "echo 'Running unit tests with new batch script'"
+      - "cd ${CODEBUILD_SRC_DIR}/crm"
+      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_lint.sh test-unit"
     finally:
-      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/reports.py"
-      - 'aws lambda invoke --function-name "ci-cd-crm-$ENVIRONMENT-reports-notification" --cli-binary-format raw-in-base64-out --payload file://payload.json output.txt'
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 
 artifacts:
   files:
-    - "/codebuild-user/crm/coverage/**/*"
-
-cache:
-  paths:
-    - "/bin"
-    - "/usr/local/bin"
-    - "/codebuild-user/crm/node_modules"
-    - "/root/.cache"
-    - "/usr/local/bundle"
+    - "crm/**/*"
