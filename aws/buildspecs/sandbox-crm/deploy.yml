@@ -15,7 +15,7 @@ phases:
           echo "Error: Required environment variable PR_NUMBER is not set or empty."
           exit 1
         fi
-      - apk add --no-cache docker-cli docker-compose bash git make curl unzip jq aws-cli tar github-cli
+      - apk add --no-cache docker-cli docker-compose bash git make nodejs npm curl unzip jq aws-cli tar github-cli
       - npm install -g n
       - n 23.10.0
       - echo "Starting Docker daemon..."
