@@ -1,6 +1,7 @@
 #!/bin/bash
 echo #### Install Software
 n install "${NODEJS_VERSION:?Node.js version is not set}" || { echo "Error: Failed to install Node.js ${NODEJS_VERSION}" >&2; exit 1; }
+echo "Installed Node.js version: $(node --version)"
 
 # Validate required environment variables
 : "${CRM_GIT_REPOSITORY_LINK:?Repository link is not set}"
