@@ -15,7 +15,7 @@ phases:
           echo "Error: Required environment variable PR_NUMBER is not set or empty."
           exit 1
         fi
-      - apk add --no-cache docker-cli docker-compose bash git make curl unzip jq aws-cli tar github-cli
+      - apk add --no-cache docker-cli docker-compose bash git make curl npm nodejs unzip jq aws-cli tar github-cli
       - echo "Starting Docker daemon..."
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
       - timeout 15 sh -c "until docker info; do echo 'Waiting for Docker to start...'; sleep 1; done"
