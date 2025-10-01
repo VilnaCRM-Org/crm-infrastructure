@@ -12,7 +12,7 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 
 bucket_name="${PROJECT_NAME}-${BRANCH_NAME}"
-rule_name="sandbox-cleanup-$(echo "$bucket_name" | sed 's/\./-/g' | cut -c1-44)"
+rule_name="sandbox-crm-cleanup-$(echo "$bucket_name" | sed 's/\./-/g' | cut -c1-44)"
 region=${AWS_REGION:-$(aws configure get region)}
 
 # Calculate date 7 days from now using Alpine-compatible date command
