@@ -48,7 +48,7 @@ def does_reports_exists(path):
 
 def generate_report_link(bucket_name, region, build_id, directory, file="."):
     return (
-        f"http://{bucket_name}.s3-crm.{region}.amazonaws.com/"
+        f"http://{bucket_name}.s3-website.{region}.amazonaws.com/"
         f"{build_id}/{directory}/{file}"
     )
 
