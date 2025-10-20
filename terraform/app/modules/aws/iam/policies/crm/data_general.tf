@@ -124,4 +124,19 @@ data "aws_iam_policy_document" "general_policy_doc" {
       "arn:aws:codepipeline:${var.region}:${local.account_id}:ci-cd-crm-${var.environment}-pipeline"
     ]
   }
+
+  statement {
+    sid    = "CloudFormationChatBotModulePolicy"
+    effect = "Allow"
+    actions = [
+      "cloudformation:CreateResource",
+      "cloudformation:GetResource",
+      "cloudformation:ListTagsForResource",
+      "cloudformation:TagResource",
+      "cloudformation:GetResourceRequestStatus",
+      "cloudformation:DeleteResource",
+      "cloudformation:UpdateResource"
+    ]
+    resources = ["arn:aws:cloudformation:${var.region}:${local.account_id}:resource/*"]
+  }
 } 
