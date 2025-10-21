@@ -11,7 +11,7 @@ echo "Retrieving GitHub token for authentication..."
 git config --global --add safe.directory "${CODEBUILD_SRC_DIR}" 2>/dev/null || true
 
 # Get the GitHub token secret ID
-SECRET_ID=$(aws secretsmanager list-secrets --query "SecretList[?starts_with(Name, 'github-token-') && DeletedDate==null].Name" --output text)
+SECRET_ID=$(aws secretsmanager list-secrets --query "SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null].Name" --output text)
 
 if [ -z "$SECRET_ID" ]; then
   echo "Error: No active GitHub token secret found."

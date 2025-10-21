@@ -58,7 +58,7 @@ if [ "$IS_PULL_REQUEST" -eq 1 ]; then
 
     # Create a pull request comment with a link to the latest version of the project
     echo "Creating pull request comment..."
-    COMMENT_BODY="Latest Version is ready: http://$PROJECT_NAME-$BRANCH_NAME.s3-crm.$AWS_DEFAULT_REGION.amazonaws.com 
+    COMMENT_BODY="Latest Version is ready: http://$PROJECT_NAME-$BRANCH_NAME.s3-website.$AWS_DEFAULT_REGION.amazonaws.com 
     This deployed crm will be automatically deleted after 7 days.
     To keep it active, please make a new commit to trigger a redeployment."
     

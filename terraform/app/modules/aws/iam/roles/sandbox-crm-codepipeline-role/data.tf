@@ -146,7 +146,7 @@ data "aws_iam_policy_document" "codepipeline_policy_document" {
     ]
     resources = [
       "arn:aws:events:${data.aws_region.current.id}:${local.account_id}:event-bus/default",
-      "arn:aws:events:${data.aws_region.current.id}:${local.account_id}:rule/sandbox-crm-cleanup-sandbox-crm-*"
+      "arn:aws:events:${data.aws_region.current.id}:${local.account_id}:rule/sandbox-crm-cleanup-*"
     ]
   }
   statement {
