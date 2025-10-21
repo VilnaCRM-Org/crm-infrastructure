@@ -18,7 +18,7 @@ phases:
       - apk add --no-cache docker-cli docker-compose bash git make curl unzip jq aws-cli tar github-cli
       - echo "Starting Docker daemon..."
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
-      - timeout 15 sh -c "until docker info; do echo 'Waiting for Docker to start...'; sleep 1; done"
+      - docker info
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sandbox_installation.sh"
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
