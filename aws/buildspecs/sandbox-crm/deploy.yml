@@ -18,7 +18,6 @@ phases:
       - apk add --no-cache docker-cli docker-compose bash git make curl unzip jq aws-cli tar github-cli
       - echo "Starting Docker daemon..."
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
-      - docker info
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sandbox_installation.sh"
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
@@ -37,6 +36,8 @@ phases:
       - "echo #### Build Project"
       - export CRM_DIR=${CRM_DIR:-/codebuild-user/crm}
       - cd "$CRM_DIR"
+      - echo "=== Checking Docker daemon status ==="
+      - docker info || echo "Docker daemon not ready yet, continuing..."
       - echo "=== Building Docker image ==="
       - "make build-out"
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sanitize_branch.sh"
