@@ -26,8 +26,15 @@ if [ "$IS_PULL_REQUEST" -eq 1 ]; then
             echo "Error: Failed to configure bucket ACL."
             exit 1
         fi
+        
+        echo "Creating S3 configuration files..."
+        if ! python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/s3_sandbox_configuration.py"; then
+            echo "Error: Failed to create S3 configuration files."
+            exit 1
+        fi
+        
         if ! aws s3api put-bucket-website --bucket "$PROJECT_NAME-$BRANCH_NAME" --website-configuration file://crm_configuration.json --region "$AWS_DEFAULT_REGION"; then
-            echo "Error: Failed to configure static crm hosting."
+            echo "Error: Failed to configure static website hosting."
             exit 1
         fi
         if ! aws s3api put-bucket-policy --bucket "$PROJECT_NAME-$BRANCH_NAME" --policy file://s3_policy.json --region "$AWS_DEFAULT_REGION"; then
