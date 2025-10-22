@@ -19,12 +19,13 @@ phases:
   build:
     commands:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo 'Running lint tests with new batch script'"
-      - "cd ${CODEBUILD_SRC_DIR}/crm"
+      - echo "🔍 Running linting checks with new batch script"
+      - cd ${CODEBUILD_SRC_DIR}/crm
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_lint.sh test-lint"
     finally:
+      - echo "📊 Generating test reports"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 
 artifacts:
   files:
-    - "crm/**/*"
+    - "crm/lint-logs/**/*"

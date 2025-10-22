@@ -115,7 +115,8 @@ data "aws_iam_policy_document" "codepipeline_policy_doc" {
       "cloudformation:ListTagsForResource",
       "cloudformation:TagResource",
       "cloudformation:GetResourceRequestStatus",
-      "cloudformation:DeleteResource"
+      "cloudformation:DeleteResource",
+      "cloudformation:UpdateResource"
     ]
     resources = ["arn:aws:cloudformation:${var.region}:${local.account_id}:resource/*"]
   }

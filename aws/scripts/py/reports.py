@@ -48,7 +48,7 @@ def does_reports_exists(path):
 
 def generate_report_link(bucket_name, region, build_id, directory, file="."):
     return (
-        f"http://{bucket_name}.s3-crm.{region}.amazonaws.com/"
+        f"http://{bucket_name}.s3-website.{region}.amazonaws.com/"
         f"{build_id}/{directory}/{file}"
     )
 
@@ -139,12 +139,15 @@ def process_test(run, config, repository_dir, region, build_id):
     )
 
 
-def compile_data(build_succeeding, codebuild_link, git_info, tests, reports):
+def compile_data(
+    build_succeeding, codebuild_link, git_info, tests, reports, project_name
+):
     data = {
         "build_succeeding": build_succeeding,
         "codebuild_link": codebuild_link,
         "github": git_info,
         "tests": tests,
+        "project_name": project_name,
     }
 
     if len(reports) != 0 and reports[0] != "":
@@ -178,7 +181,7 @@ def main():
     tests = []
     reports = []
 
-    repository_dir = "/codebuild-user/crm"
+    repository_dir = os.path.join(os.environ["CODEBUILD_SRC_DIR"], "crm")
 
     test_configs = {
         "LHCI_DESKTOP_RUN": (
@@ -232,6 +235,9 @@ def main():
             tests.append(test_result)
             reports.append(report)
 
+    # Extract project name from build ID (format: "project-name:build-uuid")
+    project_name = env_variables["build_id"].split(":")[0]
+
     data = compile_data(
         env_variables["build_succeeding"],
         generate_codebuild_link(
@@ -242,6 +248,7 @@ def main():
         git_info,
         tests,
         reports,
+        project_name,
     )
 
     write_to_file(data)

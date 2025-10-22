@@ -19,14 +19,13 @@ phases:
   build:
     commands:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo 'Running E2E tests with new batch script'"
+      - "echo 'Running Playwright E2E tests with new batch script'"
       - "cd ${CODEBUILD_SRC_DIR}/crm"
-      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh test-e2e"
+      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh test-playwright-e2e"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 
 artifacts:
   files:
-    - "crm/playwright-report/**/*"
-    - "crm/test-results/**/*"
+    - "crm/playwright-e2e-reports/**/*"
     - "crm/**/*"
