@@ -18,4 +18,4 @@ phases:
   build:
     commands:
       - "echo ## Test Crm Connection..."
-      - "hurl --test --verbose --variable crm_url=$CRM_URL ${CODEBUILD_SRC_DIR}/${HURL_DIR}/healthcheck.hurl"
+      - "hurl --test --verbose --variable website_url=$CRM_URL ${CODEBUILD_SRC_DIR}/${HURL_DIR}/healthcheck.hurl"
