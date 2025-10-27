@@ -166,7 +166,7 @@ locals {
         "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
         }
       },
-    { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/batch_unit_mutation_lint.yml" })
+    { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/batch_unit_mutation_integration_lint.yml" })
 
     deploy = merge(local.ubuntu_based_build,
       { env_variables = {
