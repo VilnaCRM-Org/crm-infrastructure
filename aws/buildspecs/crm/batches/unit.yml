@@ -21,7 +21,7 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
       - "echo 'Running unit tests with new batch script'"
       - "cd ${CODEBUILD_SRC_DIR}/crm"
-      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_lint.sh test-unit"
+      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_integration_lint.sh test-unit"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
 

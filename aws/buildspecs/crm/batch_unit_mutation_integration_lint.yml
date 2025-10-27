@@ -12,3 +12,7 @@ batch:
     - identifier: lint
       buildspec: "./aws/buildspecs/crm/batches/lint.yml"
       ignore-failure: false
+
+    - identifier: integration
+      buildspec: "./aws/buildspecs/crm/batches/integration.yml"
+      ignore-failure: false
