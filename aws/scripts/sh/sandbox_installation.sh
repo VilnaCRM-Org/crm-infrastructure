@@ -1,6 +1,5 @@
 #!/bin/bash
 echo #### Install Software
-n install "${NODEJS_VERSION:?Node.js version is not set}" || { echo "Error: Failed to install Node.js ${NODEJS_VERSION}" >&2; exit 1; }
 
 # Validate required environment variables
 : "${CRM_GIT_REPOSITORY_LINK:?Repository link is not set}"
@@ -13,8 +12,3 @@ git clone -b "$BRANCH_NAME" "$CRM_GIT_REPOSITORY_LINK.git" /codebuild-user/crm |
 
 cd /codebuild-user/crm/ || exit 1
 
-echo #### Install pnpm
-npm install -g pnpm || { echo "Error: Failed to install pnpm" >&2; exit 1; }
-
-echo #### Install dependencies
-make install || { echo "Error: Failed to install dependencies" >&2; exit 1; }

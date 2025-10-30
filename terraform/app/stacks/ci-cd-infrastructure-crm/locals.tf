@@ -46,6 +46,15 @@ locals {
     build_project_source                = var.codebuild_environment.default_build_project_source
     privileged_mode                     = true
   }
+
+  ecr_based_build = {
+    builder_compute_type                = var.codebuild_environment.default_builder_compute_type
+    builder_image                       = var.codebuild_environment.ecr_builder_image
+    builder_type                        = var.codebuild_environment.default_builder_type
+    builder_image_pull_credentials_type = var.codebuild_environment.default_builder_image_pull_credentials_type
+    build_project_source                = var.codebuild_environment.default_build_project_source
+    privileged_mode                     = true
+  }
 }
 
 locals {
