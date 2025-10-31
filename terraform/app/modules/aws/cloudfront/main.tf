@@ -1,5 +1,6 @@
 resource "aws_cloudfront_distribution" "this" {
   #checkov:skip=CKV2_AWS_47: Log4j protection already included in AWSManagedRulesKnownBadInputsRuleSet
+  #checkov:skip=CKV_AWS_174: Minimum TLS version enforced via module input and dynamic viewer_certificate block
   provider = aws.us-east-1
   enabled  = true
   origin_group {
@@ -109,6 +110,7 @@ resource "aws_cloudfront_distribution" "this" {
 
 resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
   #checkov:skip=CKV2_AWS_47: Log4j protection already included in AWSManagedRulesKnownBadInputsRuleSet
+  #checkov:skip=CKV_AWS_174: Minimum TLS version enforced via module input and dynamic viewer_certificate block
   provider = aws.us-east-1
   staging  = true
   enabled  = true

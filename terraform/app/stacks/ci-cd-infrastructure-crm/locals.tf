@@ -38,7 +38,7 @@ locals {
     privileged_mode                     = false
   }
 
-  ecr_based_build = {
+  crm_ecr_based_build_configuration = {
     builder_compute_type                = var.codebuild_environment.default_builder_compute_type
     builder_image                       = var.codebuild_environment.ecr_builder_image
     builder_type                        = var.codebuild_environment.default_builder_type
@@ -160,7 +160,7 @@ locals {
   }
 
   ci_cd_crm_build_projects = {
-    batch_unit_mutation_lint = merge(local.ecr_based_build,
+    batch_unit_mutation_lint = merge(local.crm_ecr_based_build_configuration,
       { env_variables = {
         "CI"                        = 1
         "NODEJS_VERSION"            = var.runtime_versions.nodejs,
@@ -201,7 +201,7 @@ locals {
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/healthcheck.yml" })
 
-    batch_pw_load = merge(local.ecr_based_build,
+    batch_pw_load = merge(local.crm_ecr_based_build_configuration,
       { env_variables = {
         "CI"                        = 1
         "NODEJS_VERSION"            = var.runtime_versions.nodejs,
@@ -221,7 +221,7 @@ locals {
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/batch_pw_load.yml" })
 
-    batch_lhci_leak = merge(local.ecr_based_build,
+    batch_lhci_leak = merge(local.crm_ecr_based_build_configuration,
       { env_variables = {
         "CI"                        = 1
         "NODEJS_VERSION"            = var.runtime_versions.nodejs,
@@ -287,7 +287,7 @@ locals {
       },
     { buildspec = "./aws/buildspecs/${var.sandbox_buildspecs}/up.yml" })
 
-    deploy = merge(local.ecr_based_build,
+    deploy = merge(local.crm_ecr_based_build_configuration,
       {
         env_variables = merge(
           local.common_sandbox_env_variables,

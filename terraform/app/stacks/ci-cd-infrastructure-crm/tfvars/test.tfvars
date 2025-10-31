@@ -6,7 +6,7 @@ sandbox_project_name     = "sandbox-crm-test"
 environment              = "test"
 github_connection_name   = "Github"
 source_repo_branch       = "1-implement-crm-infrastructure"
-crm_repo_branch          = "33-migrate-ci-batch-scripts-from-website-to-crm-repository"
+crm_repo_branch          = "main"
 crm_url                  = "app.vilnacrmtest.com"
 bucket_name              = "app.vilnacrmtest.com"
 
