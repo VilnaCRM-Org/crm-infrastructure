@@ -1,6 +1,3 @@
-GET https://www.{{crm_url}}
-HTTP 200
-
 GET https://{{crm_url}}
 HTTP 200
 [Asserts]
