@@ -12,7 +12,10 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:DetachRolePolicy",
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
-      "iam:DeleteRole"
+      "iam:DeleteRole",
+      "iam:GetPolicyVersion",
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${var.crm_project_name}-codepipeline-role",
@@ -23,6 +26,7 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "arn:aws:iam::${local.account_id}:role/reports-crm-chatbot-channel-role",
       "arn:aws:iam::${local.account_id}:role/crm-infrastructure-trigger-role",
       "arn:aws:iam::${local.account_id}:role/crm-deploy-trigger-role",
+      "arn:aws:iam::${local.account_id}:role/crm-cloudfront-failover-alarm-crm-chatbot-channel-role",
       "arn:aws:iam::${local.account_id}:role/sandbox-crm-deletion-trigger-role",
       "arn:aws:iam::${local.account_id}:role/sandbox-crm-creation-trigger-role",
       "arn:aws:iam::${local.account_id}:role/ci-cd-infra-crm-trigger-role",
@@ -30,7 +34,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "arn:aws:iam::${local.account_id}:role/crm-${var.environment}-codepipeline-role-sandbox-crm-deletion-${var.environment}",
       "arn:aws:iam::${local.account_id}:role/crm-${var.environment}-codebuild-role-sandbox-crm-deletion-${var.environment}",
       "arn:aws:iam::${local.account_id}:role/sandbox-crm-cleanup-function-role",
-      "arn:aws:iam::${local.account_id}:role/ci-cd-crm-${var.environment}-github-oidc-codepipeline-role"
+      "arn:aws:iam::${local.account_id}:role/ci-cd-crm-${var.environment}-github-oidc-codepipeline-role",
+      "arn:aws:iam::${local.account_id}:role/*chatbot-channel-role"
     ]
   }
   statement {
@@ -88,13 +93,18 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:DetachRolePolicy",
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
-      "iam:DeleteRole"
+      "iam:DeleteRole",
+      "iam:GetPolicyVersion",
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/codepipeline-crm-chatbot-channel-role",
       "arn:aws:iam::${local.account_id}:role/ci-cd-alerts-crm-chatbot-channel-role",
       "arn:aws:iam::${local.account_id}:role/reports-crm-chatbot-channel-role",
-      "arn:aws:iam::${local.account_id}:role/${var.ci_cd_project_name}-iam-for-cloudtrail"
+      "arn:aws:iam::${local.account_id}:role/crm-cloudfront-failover-alarm-crm-chatbot-channel-role",
+      "arn:aws:iam::${local.account_id}:role/${var.ci_cd_project_name}-iam-for-cloudtrail",
+      "arn:aws:iam::${local.account_id}:role/*chatbot-channel-role"
     ]
   }
-} 
+}

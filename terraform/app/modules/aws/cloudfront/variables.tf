@@ -57,3 +57,21 @@ variable "cloudfront_custom_error_responses" {
   }))
   description = "See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GeneratingCustomErrorResponses.html"
 }
+
+variable "continuous_deployment_policy_type" {
+  type        = string
+  description = "Traffic config type for the CloudFront continuous deployment policy"
+  default     = "SingleWeight"
+}
+
+variable "continuous_deployment_policy_weight" {
+  type        = number
+  description = "Weight used when the continuous deployment policy type is SingleWeight"
+  default     = 0.15
+}
+
+variable "continuous_deployment_policy_header" {
+  type        = string
+  description = "Header suffix used when the continuous deployment policy type is SingleHeader"
+  default     = "staging"
+}
