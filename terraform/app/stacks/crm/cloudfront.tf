@@ -18,5 +18,9 @@ module "cloudfront" {
 
   enable_cloudfront_staging = var.enable_cloudfront_staging
 
+  continuous_deployment_policy_type   = var.continuous_deployment_policy_type
+  continuous_deployment_policy_weight = var.continuous_deployment_policy_weight
+  continuous_deployment_policy_header = var.continuous_deployment_policy_header
+
   tags = var.tags
 }
