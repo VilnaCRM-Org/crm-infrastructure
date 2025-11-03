@@ -93,6 +93,24 @@ variable "enable_cloudfront_staging" {
   type        = bool
 }
 
+variable "continuous_deployment_policy_type" {
+  description = "Traffic config type for the CloudFront continuous deployment policy"
+  type        = string
+  default     = "SingleWeight"
+}
+
+variable "continuous_deployment_policy_weight" {
+  description = "Weight used when the continuous deployment policy type is SingleWeight"
+  type        = number
+  default     = 0.15
+}
+
+variable "continuous_deployment_policy_header" {
+  description = "Header suffix used when the continuous deployment policy type is SingleHeader"
+  type        = string
+  default     = "staging"
+}
+
 variable "create_slack_notification" {
   description = "This responsible for creating Slack Notifications"
   type        = bool
