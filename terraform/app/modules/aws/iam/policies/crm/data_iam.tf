@@ -57,7 +57,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:DetachRolePolicy",
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
-      "iam:DeleteRole"
+      "iam:DeleteRole",
+      "iam:GetRolePolicy"
     ]
     resources = ["arn:aws:iam::${local.account_id}:role/*"]
   }
