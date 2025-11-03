@@ -14,7 +14,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:TagRole",
       "iam:DeleteRole",
       "iam:GetPolicyVersion",
-      "iam:GetRolePolicy"
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${var.crm_project_name}-codepipeline-role",
@@ -94,7 +95,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:TagRole",
       "iam:DeleteRole",
       "iam:GetPolicyVersion",
-      "iam:GetRolePolicy"
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/codepipeline-crm-chatbot-channel-role",

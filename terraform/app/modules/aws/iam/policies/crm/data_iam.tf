@@ -13,7 +13,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
       "iam:DeleteRole",
-      "iam:GetRolePolicy"
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = [
       "arn:aws:iam::${local.account_id}:role/${var.project_name}-iam-for-lambda",
@@ -61,7 +62,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "iam:ListInstanceProfilesForRole",
       "iam:TagRole",
       "iam:DeleteRole",
-      "iam:GetRolePolicy"
+      "iam:GetRolePolicy",
+      "iam:PutRolePolicy"
     ]
     resources = ["arn:aws:iam::${local.account_id}:role/*"]
   }
