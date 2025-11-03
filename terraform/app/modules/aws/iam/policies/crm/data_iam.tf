@@ -20,7 +20,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "arn:aws:iam::${local.account_id}:role/${var.project_name}-staging-iam-for-lambda",
       "arn:aws:iam::${local.account_id}:role/${var.domain_name}-iam-role-replication",
       "arn:aws:iam::${local.account_id}:role/${var.domain_name}-staging-iam-role-replication",
-      "arn:aws:iam::${local.account_id}:role/crm-cloudfront-failover-alarm-crm-chatbot-channel-role"
+      "arn:aws:iam::${local.account_id}:role/crm-cloudfront-failover-alarm-crm-chatbot-channel-role",
+      "arn:aws:iam::${local.account_id}:role/*chatbot-channel-role"
     ]
   }
   statement {
