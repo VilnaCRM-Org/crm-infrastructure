@@ -28,3 +28,4 @@ lambda_configuration = {
 create_slack_notification = true
 
 enable_cloudfront_staging = true
+continuous_deployment_policy_type = "SingleHeader"

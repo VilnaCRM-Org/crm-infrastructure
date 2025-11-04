@@ -182,6 +182,7 @@ locals {
         "CLOUDFRONT_REGION"         = var.cloudfront_configuration.region,
         "CLOUDFRONT_WEIGHT"         = var.continuous_deployment_policy_weight,
         "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "CLOUDFRONT_TYPE"           = var.continuous_deployment_policy_type,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/deploy.yml" })
@@ -205,6 +206,7 @@ locals {
         "SCRIPT_DIR"                = var.script_dir,
         "PW_TEST_HTML_REPORT_OPEN"  = "never",
         "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "CLOUDFRONT_TYPE"           = var.continuous_deployment_policy_type,
         "LHCI_REPORTS_BUCKET"       = module.lhci_reports_bucket.id,
         "TEST_REPORTS_BUCKET"       = module.test_reports_bucket.id,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
@@ -223,6 +225,7 @@ locals {
         "ACCOUNT_ID"                = local.account_id,
         "SCRIPT_DIR"                = var.script_dir,
         "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "CLOUDFRONT_TYPE"           = var.continuous_deployment_policy_type,
         "LHCI_REPORTS_BUCKET"       = module.lhci_reports_bucket.id,
         "TEST_REPORTS_BUCKET"       = module.test_reports_bucket.id,
         "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
