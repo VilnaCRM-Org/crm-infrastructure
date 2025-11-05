@@ -8,43 +8,46 @@ CONFIG_FILENAME = "continuous_deployment_policy.json"
 CLOUDFRONT_WEIGHT = os.environ["CLOUDFRONT_WEIGHT"]
 CLOUDFRONT_HEADER = os.environ["CLOUDFRONT_HEADER"]
 CLOUDFRONT_REGION = os.environ["CLOUDFRONT_REGION"]
+CLF_TYPE_ENV_VAR = "CLOUDFRONT_TYPE"
+CLOUDFRONT_TYPE = os.environ.get(CLF_TYPE_ENV_VAR, "SingleHeader")
 
 
-def create_config(staging_dns_name, config_value, config_type="weight"):
+def create_config(staging_dns_name):
+    config_type = CLOUDFRONT_TYPE.strip()
     print(
         f"Creating config with staging_dns_name: {staging_dns_name}, "
-        f"config_value: {config_value}, config_type: {config_type}"
+        f"config_type: {config_type}"
+    )
+
+    valid_types = {"SingleWeight", "SingleHeader"}
+    if config_type not in valid_types:
+        raise ValueError(
+            f"Unsupported continuous deployment type '{config_type}'. "
+            f"Expected one of {sorted(valid_types)}. "
+            f"Set the {CLF_TYPE_ENV_VAR} environment variable accordingly."
+        )
+
+    print(
+        f"Using parameters — weight: {CLOUDFRONT_WEIGHT}, header: {CLOUDFRONT_HEADER}"
     )
     base_config = {
         "StagingDistributionDnsNames": {"Quantity": 1, "Items": [staging_dns_name]},
         "Enabled": True,
-        "TrafficConfig": {
-            "Type": "SingleWeight" if config_type == "weight" else "SingleHeader"
-        },
+        "TrafficConfig": {"Type": config_type},
     }
 
-    if config_type == "weight":
+    if config_type == "SingleWeight":
         base_config["TrafficConfig"]["SingleWeightConfig"] = {
-            "Weight": float(config_value)
+            "Weight": float(CLOUDFRONT_WEIGHT)
         }
-    elif config_type == "header":
+    else:  # config_type == "SingleHeader"
         base_config["TrafficConfig"]["SingleHeaderConfig"] = {
-            "Header": f"aws-cf-cd-{config_value}",
-            "Value": config_value,
+            "Header": f"aws-cf-cd-{CLOUDFRONT_HEADER}",
+            "Value": CLOUDFRONT_HEADER,
         }
 
     print(f"Created config: {base_config}")
     return base_config
-
-
-def type_handler(config_type, staging_dns_name):
-    print(
-        f"Handling type with config_type: {config_type}, "
-        f"staging_dns_name: {staging_dns_name}"
-    )
-    if config_type != "SingleHeader":
-        return create_config(staging_dns_name, CLOUDFRONT_HEADER, config_type="header")
-    return create_config(staging_dns_name, CLOUDFRONT_WEIGHT, config_type="weight")
 
 
 def fetch_continuous_deployment_policies():
@@ -123,13 +126,13 @@ def main():
         "ContinuousDeploymentPolicyConfig"
     ]
     staging_dns_name = policy_config["StagingDistributionDnsNames"]["Items"][0]
-    config_type = policy_config["TrafficConfig"]["Type"]
     print(
         f"Policy ETag: {policy_etag}, Staging DNS Name: {staging_dns_name}, "
-        f"Config Type: {config_type}"
+        f"Current Config Type: {policy_config['TrafficConfig']['Type']}, "
+        f"Desired Config Type: {CLOUDFRONT_TYPE}"
     )
 
-    continuous_deployment_policy = type_handler(config_type, staging_dns_name)
+    continuous_deployment_policy = create_config(staging_dns_name)
 
     with open(CONFIG_FILENAME, "w") as config_file:
         print(f"Writing config to {CONFIG_FILENAME}")

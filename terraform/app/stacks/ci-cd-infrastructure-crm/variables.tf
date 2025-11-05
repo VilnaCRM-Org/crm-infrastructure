@@ -38,6 +38,11 @@ variable "cloudfront_configuration" {
   type        = map(string)
 }
 
+variable "continuous_deployment_policy_type" {
+  description = "Continuous Deployment Policy Configuration Type"
+  type        = string
+}
+
 variable "continuous_deployment_policy_weight" {
   description = "Continuous Deployment Policy Configuration Weight"
   type        = number
