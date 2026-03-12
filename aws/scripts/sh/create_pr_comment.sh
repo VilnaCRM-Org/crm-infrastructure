@@ -30,7 +30,7 @@ for var in IS_PULL_REQUEST GITHUB_REPOSITORY PROJECT_NAME BRANCH_NAME AWS_DEFAUL
 done
 
 # Check if the script is running in the context of a pull request
-if [ "$IS_PULL_REQUEST" -ne 1 ]; then
+if [ "$IS_PULL_REQUEST" != "1" ]; then
     echo "Not a pull request. Skipping comment creation."
     exit 0
 fi
