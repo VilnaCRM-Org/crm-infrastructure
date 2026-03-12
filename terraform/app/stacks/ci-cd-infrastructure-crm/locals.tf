@@ -1,6 +1,6 @@
 locals {
-  account_id = data.aws_caller_identity.current.account_id
-  alarm_name = "crm-${var.region}-s3-objects-anomaly-detection"
+  account_id        = data.aws_caller_identity.current.account_id
+  alarm_name        = "crm-${var.region}-s3-objects-anomaly-detection"
   terraform_version = "1.14.3"
   terraform_runtime_env = {
     "TERRAFORM_VERSION" = local.terraform_version
