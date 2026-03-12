@@ -2,7 +2,8 @@ import json
 import os
 
 try:
-    ACCOUNT_ID = os.environ["ACCOUNT_ID"]
+    BRANCH_NAME = os.environ["BRANCH_NAME"]
+    PROJECT_NAME = os.environ["PROJECT_NAME"]
 except KeyError as e:
     raise ValueError(f"Required environment variable {e} is not set") from e
 
@@ -19,7 +20,7 @@ def create_crm_configuration(
         },
     }
 
-    json_string = json.dumps(config, indent=2)
+    json_string = json.dumps(config, indent=4)
 
     try:
         with open(output_path, "w") as file:
@@ -30,21 +31,24 @@ def create_crm_configuration(
     print(f"Config has been written to {output_path}")
 
 
-def create_s3_policy(output_path: str = "policy.json") -> None:
+def create_s3_policy(output_path: str = "s3_policy.json") -> None:
     policy_document = {
-        "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "PublicReadGetObject",
                 "Effect": "Allow",
-                "Principal": "*",
+                "Principal": {
+                    "AWS": "*",
+                },
                 "Action": "s3:GetObject",
-                "Resource": f"arn:aws:s3:::{os.environ['BUCKET_NAME']}/*",
+                "Resource": [
+                    f"arn:aws:s3:::{PROJECT_NAME}-{BRANCH_NAME}/*",
+                    f"arn:aws:s3:::{PROJECT_NAME}-{BRANCH_NAME}",
+                ],
             },
         ],
     }
 
-    json_string = json.dumps(policy_document, indent=2)
+    json_string = json.dumps(policy_document, indent=4)
 
     try:
         with open(output_path, "w") as file:

@@ -1,6 +1,12 @@
 locals {
-  account_id = data.aws_caller_identity.current.account_id
-  alarm_name = "crm-${var.region}-s3-objects-anomaly-detection"
+  account_id        = data.aws_caller_identity.current.account_id
+  alarm_name        = "crm-${var.region}-s3-objects-anomaly-detection"
+  terraform_version = "1.14.3"
+  terraform_runtime_env = {
+    "TERRAFORM_VERSION" = local.terraform_version
+    "TS_TERRAFORM_BIN"  = "terraform"
+    "TS_VERSION_CHECK"  = "0"
+  }
 
   crm_infra_codebuild_project_down_name = "${var.crm_infra_project_name}-down"
 
@@ -52,7 +58,7 @@ locals {
 locals {
   crm_infra_build_projects = {
     validate = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
@@ -62,12 +68,12 @@ locals {
         "RUBY_VERSION"                       = var.runtime_versions.ruby,
         "GOLANG_VERSION"                     = var.runtime_versions.golang,
         "SCRIPT_DIR"                         = var.script_dir,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/validate.yml" })
 
     plan = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
@@ -75,12 +81,12 @@ locals {
         "AWS_DEFAULT_REGION"                 = var.region,
         "RUBY_VERSION"                       = var.runtime_versions.ruby,
         "SCRIPT_DIR"                         = var.script_dir,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/plan.yml" })
 
     up = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                           = module.crm_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"          = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CRM_ALERTS_SLACK_CHANNEL_ID" = var.CRM_ALERTS_SLACK_CHANNEL_ID,
@@ -91,14 +97,14 @@ locals {
         "SCRIPT_DIR"                         = var.script_dir,
         "CI_CD_CRM_PIPELINE_NAME"            = "${var.ci_cd_crm_project_name}-pipeline",
         "CLOUDFRONT_REGION"                  = var.cloudfront_configuration.region,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/up.yml" })
   }
 
   ci_cd_infra_build_projects = {
     validate = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID" = var.CODEPIPELINE_SLACK_CHANNEL_ID,
@@ -111,12 +117,12 @@ locals {
         "GOLANG_VERSION"                       = var.runtime_versions.golang,
         "RUBY_VERSION"                         = var.runtime_versions.ruby,
         "SCRIPT_DIR"                           = var.script_dir,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/validate.yml" })
 
     plan = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
         "TF_VAR_CODEPIPELINE_SLACK_CHANNEL_ID" = var.CODEPIPELINE_SLACK_CHANNEL_ID,
@@ -129,12 +135,12 @@ locals {
         "RUBY_VERSION"                         = var.runtime_versions.ruby,
         "SCRIPT_DIR"                           = var.script_dir,
         "GITHUB_OWNER"                         = var.source_repo_owner,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/plan.yml" })
 
     up = merge(local.amazonlinux2_based_build,
-      { env_variables = {
+      { env_variables = merge(local.terraform_runtime_env, {
         "ROLE_ARN"                             = module.ci_cd_infra_codepipeline_iam_role.terraform_role_arn,
         "TF_VAR_SLACK_WORKSPACE_ID"            = var.SLACK_WORKSPACE_ID,
         "TF_VAR_REPORT_SLACK_CHANNEL_ID"       = var.REPORT_SLACK_CHANNEL_ID,
@@ -146,7 +152,7 @@ locals {
         "RUBY_VERSION"                         = var.runtime_versions.ruby,
         "SCRIPT_DIR"                           = var.script_dir,
         "GITHUB_OWNER"                         = var.source_repo_owner,
-        }
+        })
       },
     { buildspec = "./aws/buildspecs/${var.ci_cd_infra_buildspecs}/up.yml" })
   }

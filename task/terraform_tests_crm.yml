@@ -1,0 +1,36 @@
+version: "3"
+
+tasks:
+  validate:
+    desc: "Validate Terraform code for the CRM stack"
+    env:
+      TS_TERRAFORM_BIN: terraform
+      TS_VERSION_CHECK: "0"
+    cmds:
+      - make terraspace-init stack=crm
+      - make terraspace-validate stack=crm
+    silent: false
+
+  format:
+    desc: "Format Terraform code"
+    cmds:
+      - terraform fmt -recursive
+    silent: false
+
+  checkov:
+    desc: "Run checkov"
+    cmds:
+      - checkov -o junitxml --framework terraform -d ./ --download-external-modules true > checkov.xml
+    silent: false
+
+  tfsec:
+    desc: "Run tfsec"
+    cmds:
+      - tfsec ./ --format junit --out tfsec-junit.xml
+    silent: false
+
+  summary:
+    desc: "Display summary"
+    deps: [validate, format, checkov, tfsec]
+    cmds:
+      - echo "Validation and checks have been completed."
