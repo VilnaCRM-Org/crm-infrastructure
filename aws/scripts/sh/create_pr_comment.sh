@@ -22,17 +22,27 @@
 #   - Handles comment creation failures
 
 # Validate required environment variables
-for var in IS_PULL_REQUEST PR_NUMBER GITHUB_REPOSITORY PROJECT_NAME BRANCH_NAME AWS_DEFAULT_REGION; do
+for var in IS_PULL_REQUEST GITHUB_REPOSITORY PROJECT_NAME BRANCH_NAME AWS_DEFAULT_REGION CODEBUILD_SRC_DIR SCRIPT_DIR; do
     if [ -z "${!var}" ]; then
         echo "Error: $var environment variable is not set"
         exit 1
     fi
 done
 
+# Check if the script is running in the context of a pull request
+if [ "$IS_PULL_REQUEST" -ne 1 ]; then
+    echo "Not a pull request. Skipping comment creation."
+    exit 0
+fi
+
+if [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "null" ]; then
+    echo "PR number is unavailable. Skipping comment creation."
+    exit 0
+fi
+
 # Set up a cleanup action to log out of GitHub after the script completes
 trap 'gh auth logout' EXIT
 
-# Check if the script is running in the context of a pull request
 if [ "$IS_PULL_REQUEST" -eq 1 ]; then
 
     echo "Running in the context of a pull request."
@@ -40,17 +50,8 @@ if [ "$IS_PULL_REQUEST" -eq 1 ]; then
     # Authenticate with GitHub using the token retrieved directly from AWS Secrets Manager
     echo "Authenticating with GitHub..."
 
-    SECRET_ID=$(aws secretsmanager list-secrets --query "SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null].Name" --output text)
-    if [ -z "$SECRET_ID" ]; then
-        echo "Error: No active GitHub token secret found."
-        exit 1
-    fi
-
-    if ! aws secretsmanager get-secret-value \
-        --secret-id "$SECRET_ID" \
-        --query 'SecretString' \
-        --output text | jq -r '.token' | gh auth login --with-token; then
-        echo "GitHub authentication failed. Please ensure the secret contains a valid JSON object with a 'token' field."
+    if ! . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/gh_auth_login.sh"; then
+        echo "GitHub authentication failed."
         exit 1
     fi
 
