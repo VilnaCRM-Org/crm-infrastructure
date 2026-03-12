@@ -18,4 +18,4 @@ data "aws_iam_policy_document" "s3_policy_doc" {
       "arn:aws:s3:::${var.project_name}-*",
     ]
   }
-} 
+}
