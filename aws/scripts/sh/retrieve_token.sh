@@ -7,7 +7,7 @@ if [ -z "${AWS_DEFAULT_REGION:-}" ]; then
 fi
 
 echo "Retrieving and using GitHub token for authentication..."
-SECRET_ID=$(aws secretsmanager list-secrets --query "SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null].Name" --output text)
+SECRET_ID=$(aws secretsmanager list-secrets --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" --output text)
 if [ -z "$SECRET_ID" ]; then
   echo "Error: No active GitHub token secret found."
   exit 1
@@ -20,9 +20,12 @@ if [ -z "$GITHUB_TOKEN" ]; then
   exit 1
 fi
 EXPIRY=$(echo "$SECRET_VALUE" | jq -r '.expires_at // empty')
-if [[ -n "$EXPIRY" ]] && [[ "$(date -u +%s)" -gt "$(date -u -d "$EXPIRY" +%s)" ]]; then
-  echo "Error: GitHub token has expired."
-  exit 1
+if [[ -n "$EXPIRY" ]]; then
+  EXPIRY_EPOCH=$(python3 -c 'from datetime import datetime; import sys; print(int(datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00")).timestamp()))' "$EXPIRY")
+  if [[ "$(date -u +%s)" -gt "$EXPIRY_EPOCH" ]]; then
+    echo "Error: GitHub token has expired."
+    exit 1
+  fi
 fi
 if ! [[ $GITHUB_TOKEN =~ ^gh[ps]_[a-zA-Z0-9]{36,40}$ ]]; then
   echo "Error: Invalid GitHub token format."

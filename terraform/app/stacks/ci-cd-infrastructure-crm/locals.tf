@@ -267,6 +267,7 @@ locals {
     "SCRIPT_DIR"         = var.script_dir,
     "PROJECT_NAME"       = var.sandbox_project_name,
     "GITHUB_REPOSITORY"  = "${var.source_repo_owner}/${var.crm_content_repo_name}",
+    "ACCOUNT_ID"         = local.account_id,
   }
 
   sandbox_build_projects = {
