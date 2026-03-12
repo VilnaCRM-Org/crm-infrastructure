@@ -3,6 +3,9 @@ version: "3"
 tasks:
   validate:
     desc: "Validate Terraform code for CI/CD CRM infrastructure stacks"
+    env:
+      TS_TERRAFORM_BIN: terraform
+      TS_VERSION_CHECK: "0"
     cmds:
       - make terraspace-ci-cd-infra-init
       - make terraspace-ci-cd-infra-validate
@@ -17,13 +20,13 @@ tasks:
   checkov:
     desc: "Run checkov"
     cmds:
-      - checkov -o junitxml --framework terraform -d ./ --download-external-modules true | tee checkov.xml
+      - checkov -o junitxml --framework terraform -d ./ --download-external-modules true > checkov.xml
     silent: false
 
   tfsec:
     desc: "Run tfsec"
     cmds:
-      - tfsec ./ --format junit --out tfsec-junit.xml | tee tfsec-junit.xml
+      - tfsec ./ --format junit --out tfsec-junit.xml
     silent: false
 
   summary:

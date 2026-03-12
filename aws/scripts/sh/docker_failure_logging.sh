@@ -8,7 +8,12 @@ reset_docker_failure_logging() {
 
 escape_glob_literal() {
     local str="$1"
-    printf '%s' "$str" | sed 's/[.[\*^$+{}()|?\\/]/\\&/g'
+    str="${str//\\/\\\\}"
+    str="${str//\*/\\*}"
+    str="${str//\?/\\?}"
+    str="${str//[/\\[}"
+    str="${str//]/\\]}"
+    printf '%s' "$str"
 }
 
 replace_literal() {
@@ -180,7 +185,14 @@ enable_docker_failure_logging() {
     fi
 
     export DOCKER_FAILURE_LOGGING_ENABLED=1
-    DOCKER_FAILURE_EXISTING_EXIT_TRAP=$(trap -p EXIT | awk -F"'" '/EXIT/{print $2}')
+    DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW=$(trap -p EXIT || true)
+    DOCKER_FAILURE_EXISTING_EXIT_TRAP=""
+    case "${DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW}" in
+        "trap -- '"*"' EXIT")
+            DOCKER_FAILURE_EXISTING_EXIT_TRAP=${DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW#trap -- \'}
+            DOCKER_FAILURE_EXISTING_EXIT_TRAP=${DOCKER_FAILURE_EXISTING_EXIT_TRAP%\' EXIT}
+            ;;
+    esac
 
     docker_exit_trap() {
         local status=$?

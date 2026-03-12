@@ -58,7 +58,7 @@ phases:
         echo "Post-build phase: Checking if build failed to post comment..."
 
         if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then
-          if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh" false; then
+          if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
             COMMENT_BODY="❌ Sandbox Deployment Failed"$'\n'"The deployment to the sandbox environment has failed."$'\n'"Please review the CodeBuild logs and try again. 🔧"
 
             if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then

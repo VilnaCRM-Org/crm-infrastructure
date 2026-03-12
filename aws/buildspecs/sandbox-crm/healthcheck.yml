@@ -6,6 +6,7 @@ env:
     HURL_DIR: "./hurl"
     HURL_FILE: "sandbox_healthcheck.hurl"
     LIBCLANG_PATH: "/usr/lib64"
+    SCRIPT_DIR: "./aws/scripts"
 
 phases:
   install:
@@ -16,7 +17,7 @@ phases:
       - gh --version
       - echo 'Installing dependencies for Hurl...'
       - yum groupinstall -y "Development Tools"
-      - yum install -y pkgconfig gcc openssl-devel libxml2-devel clang llvm llvm-devel cmake
+      - yum install -y pkgconfig gcc openssl-devel libxml2-devel clang llvm llvm-devel cmake jq
       - echo 'Installing Rust...'
       - curl https://sh.rustup.rs -sSf | sh -s -- -y
       - source $HOME/.cargo/env
@@ -41,13 +42,16 @@ phases:
           echo "Error: Required environment variable PROJECT_NAME is not set or empty."
           exit 1
         fi
-        if [ -z "${PR_NUMBER}" ]; then
-          echo "Error: Required environment variable PR_NUMBER is not set or empty."
-          exit 1
-        fi
-        if [ -z "${GITHUB_REPOSITORY}" ]; then
-          echo "Error: Required environment variable GITHUB_REPOSITORY is not set or empty."
-          exit 1
+
+        if [ "${IS_PULL_REQUEST}" = "1" ]; then
+          if [ -z "${PR_NUMBER}" ]; then
+            echo "Error: Required environment variable PR_NUMBER is not set or empty."
+            exit 1
+          fi
+          if [ -z "${GITHUB_REPOSITORY}" ]; then
+            echo "Error: Required environment variable GITHUB_REPOSITORY is not set or empty."
+            exit 1
+          fi
         fi
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sanitize_branch.sh"
       - |
@@ -69,22 +73,29 @@ phases:
         if ! hurl --test --verbose \
           --variable website_url="$WEBSITE_URL" \
           "$HURL_FILE_PATH"; then
-          echo "Health check failed for the website endpoint. Adding comment to PR..."
+          echo "Health check failed for the website endpoint."
 
-          . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
+          if [ "${IS_PULL_REQUEST}" = "1" ]; then
+            echo "Adding failure comment to PR..."
+            . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
-          COMMENT_BODY=":x: Health check failed for the sandbox CRM website.
-          Please check the CodeBuild logs for detailed error information."
+            COMMENT_BODY=":x: Health check failed for the sandbox CRM website.
+            Please check the CodeBuild logs for detailed error information."
 
-          if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-            echo "Failed to add error comment to PR"
-            exit 1
+            if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+              echo "Failed to add error comment to PR"
+              exit 1
+            fi
           fi
           exit 1
         else
-          echo "Health check passed. Running create_pr_comment script..."
-          if ! bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_pr_comment.sh; then
-             echo "Failed to execute create_pr_comment.sh"
-             exit 1
+          if [ "${IS_PULL_REQUEST}" = "1" ]; then
+            echo "Health check passed. Running create_pr_comment script..."
+            if ! bash "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_pr_comment.sh"; then
+               echo "Failed to execute create_pr_comment.sh"
+               exit 1
+            fi
+          else
+            echo "Health check passed. Skipping PR comment for non-PR execution."
           fi
         fi

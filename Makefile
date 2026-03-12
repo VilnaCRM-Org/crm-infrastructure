@@ -76,12 +76,14 @@ terraspace-all-validate: ## Validate all the stacks.
 	$(EXEC_TS) all validate
 
 terraspace-init-stacks: ## Init a list of stacks. Variables: env, stacks.
+	@[ -n "$(strip $(stacks))" ] || { $(ECHO) 'Error: terraspace-init-stacks requires stacks="..."'; exit 1; }
 	@for stack in $(stacks); do \
 		$(ECHO) "## TERRASPACE INIT : $$stack"; \
 		($(GO_TO_TERRAFORM_DIR) && $(TERRASPACE_ENVIRONMENT) $(TERRASPACE) init $$stack) || exit 1; \
 	done
 
 terraspace-validate-stacks: ## Validate a list of stacks. Variables: env, stacks.
+	@[ -n "$(strip $(stacks))" ] || { $(ECHO) 'Error: terraspace-validate-stacks requires stacks="..."'; exit 1; }
 	@for stack in $(stacks); do \
 		$(ECHO) "## TERRASPACE VALIDATE : $$stack"; \
 		($(GO_TO_TERRAFORM_DIR) && $(TERRASPACE_ENVIRONMENT) $(TERRASPACE) validate $$stack) || exit 1; \
@@ -92,6 +94,16 @@ terraspace-ci-cd-infra-init: ## Init the stacks used by the CI/CD CRM infrastruc
 
 terraspace-ci-cd-infra-validate: ## Validate the stacks used by the CI/CD CRM infrastructure pipeline. Variables: env.
 	$(MAKE) terraspace-validate-stacks stacks="$(CI_CD_INFRA_STACKS)" env=$(if $(env),$(env),$(TS_ENV))
+
+terraspace-plan-stacks: ## Plan a list of stacks into stack-named plan files. Variables: env, stacks.
+	@[ -n "$(strip $(stacks))" ] || { $(ECHO) 'Error: terraspace-plan-stacks requires stacks="..."'; exit 1; }
+	@for stack in $(stacks); do \
+		$(ECHO) "## TERRASPACE PLAN : $$stack"; \
+		$(MAKE) terraspace-plan-file stack="$$stack" out="$$stack.plan" env=$(if $(env),$(env),$(TS_ENV)) || exit 1; \
+	done
+
+terraspace-ci-cd-infra-plan: ## Plan the stacks used by the CI/CD CRM infrastructure pipeline. Variables: env.
+	$(MAKE) terraspace-plan-stacks stacks="$(CI_CD_INFRA_STACKS)" env=$(if $(env),$(env),$(TS_ENV))
 
 terraspace-all-plan: ## Plan all the stacks. Variables: env.
 	$(EXEC_TS) all plan -y 
