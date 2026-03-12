@@ -2,27 +2,15 @@
 
 # terraform_installation.sh
 #
-# Purpose: Sets up infrastructure management tools for sandbox-crm environments
-# Context: Part of the CI/CD pipeline for deploying sandbox-crm infrastructure
+# Purpose: Sets up infrastructure management tools for Terraform/Terraspace builds
+# Context: Part of the CI/CD pipelines for deploying CRM infrastructure
 # Requirements:
 #   - AWS CodeBuild environment
 #   - Ruby for Terraform testing
 #   - RPM package manager
 
-echo "## Install OpenTofu"
-if ! curl --proto "=https" --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh; then
-    echo "Failed to download OpenTofu installation script"
-    exit 1
-fi
-chmod +x install-opentofu.sh
-if ! ./install-opentofu.sh --install-method rpm; then
-    echo "OpenTofu installation failed"
-    rm install-opentofu.sh
-    exit 1
-fi
-rm install-opentofu.sh
-
 echo "## Install Terraform"
+TERRAFORM_VERSION="${TERRAFORM_VERSION:-1.14.3}"
 if ! git clone https://github.com/tfutils/tfenv.git ~/.tfenv; then
     echo "Failed to clone tfenv repository"
     exit 1
