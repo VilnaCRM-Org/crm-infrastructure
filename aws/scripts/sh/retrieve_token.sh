@@ -7,7 +7,7 @@ if [ -z "${AWS_DEFAULT_REGION:-}" ]; then
 fi
 
 echo "Retrieving and using GitHub token for authentication..."
-SECRET_ID=$(aws secretsmanager list-secrets --query "SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null].Name" --output text)
+SECRET_ID=$(aws secretsmanager list-secrets --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" --output text)
 if [ -z "$SECRET_ID" ]; then
   echo "Error: No active GitHub token secret found."
   exit 1

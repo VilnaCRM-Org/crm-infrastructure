@@ -41,37 +41,32 @@ if [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "null" ]; then
 fi
 
 # Set up a cleanup action to log out of GitHub after the script completes
-trap 'gh auth logout' EXIT
+trap 'gh auth logout >/dev/null 2>&1 || true' EXIT
 
-if [ "$IS_PULL_REQUEST" -eq 1 ]; then
+echo "Running in the context of a pull request."
 
-    echo "Running in the context of a pull request."
+# Authenticate with GitHub using the token retrieved directly from AWS Secrets Manager
+echo "Authenticating with GitHub..."
 
-    # Authenticate with GitHub using the token retrieved directly from AWS Secrets Manager
-    echo "Authenticating with GitHub..."
-
-    if ! . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/gh_auth_login.sh"; then
-        echo "GitHub authentication failed."
-        exit 1
-    fi
-
-    echo "Authentication successful."
-
-    # Create a pull request comment with a link to the latest version of the project
-    echo "Creating pull request comment..."
-    COMMENT_BODY="Latest Version is ready: http://$PROJECT_NAME-$BRANCH_NAME.s3-website.$AWS_DEFAULT_REGION.amazonaws.com 
-    This deployed crm will be automatically deleted after 7 days.
-    To keep it active, please make a new commit to trigger a redeployment."
-    
-    if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-        echo "Failed to create the pull request comment. Please check the provided environment variables."
-        exit 1
-    else
-        echo "Successfully created a comment on PR #$PR_NUMBER with the latest version link."
-    fi
-
-    echo "Pull request comment created successfully."
-
-else
-    echo "Not a pull request. Skipping comment creation."
+# shellcheck source=aws/scripts/sh/gh_auth_login.sh
+if ! . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/gh_auth_login.sh"; then
+    echo "GitHub authentication failed."
+    exit 1
 fi
+
+echo "Authentication successful."
+
+# Create a pull request comment with a link to the latest version of the project
+echo "Creating pull request comment..."
+COMMENT_BODY="Latest Version is ready: http://$PROJECT_NAME-$BRANCH_NAME.s3-website.$AWS_DEFAULT_REGION.amazonaws.com
+This deployed crm will be automatically deleted after 7 days.
+To keep it active, please make a new commit to trigger a redeployment."
+
+if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+    echo "Failed to create the pull request comment. Please check the provided environment variables."
+    exit 1
+else
+    echo "Successfully created a comment on PR #$PR_NUMBER with the latest version link."
+fi
+
+echo "Pull request comment created successfully."

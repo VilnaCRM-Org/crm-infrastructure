@@ -2,14 +2,17 @@
 
 # GitHub Authentication Script
 # This script handles GitHub CLI authentication using AWS Secrets Manager.
-# It may be executed directly or sourced from another shell script.
-
-set -e
+# It may be executed directly or sourced from another shell script without
+# changing the caller's error-handling behavior.
 
 if (return 0 2>/dev/null); then
   gh_auth_login_sourced=1
 else
   gh_auth_login_sourced=0
+fi
+
+if [ "$gh_auth_login_sourced" -eq 0 ]; then
+  set -e
 fi
 
 gh_auth_login_finish() {

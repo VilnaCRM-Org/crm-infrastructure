@@ -14,12 +14,6 @@ phases:
       - echo "Starting Docker daemon..."
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sandbox_installation.sh"
-      - |
-        if [ "${IS_PULL_REQUEST}" = "1" ] && [ -n "${PR_NUMBER}" ] && [ "${PR_NUMBER}" != "null" ]; then
-          . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
-        else
-          echo "Skipping upfront GitHub authentication because PR metadata is unavailable."
-        fi
 
   build:
     commands:
@@ -59,7 +53,7 @@ phases:
         if [ "$CODEBUILD_BUILD_SUCCEEDING" != "1" ]; then
           if [ "${IS_PULL_REQUEST}" != "1" ] || [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "null" ]; then
             echo "Skipping failure comment because PR metadata is unavailable."
-          elif . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh" false; then
+          elif . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
             COMMENT_BODY="❌ Sandbox Deployment Failed"$'\n'"The deployment to the sandbox environment has failed."$'\n'"Please review the CodeBuild logs and try again. 🔧"
 
             # Post the comment to the PR
