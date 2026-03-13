@@ -40,6 +40,22 @@ escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
 
+assert_config_contains() {
+    expected_value="$1"
+    if ! grep -Fq "$expected_value" "$LOAD_TEST_DIR"/config.json; then
+        echo "Config rewrite failed: expected value not found -> $expected_value" >&2
+        exit 1
+    fi
+}
+
+assert_config_not_contains() {
+    unexpected_value="$1"
+    if grep -Fq "$unexpected_value" "$LOAD_TEST_DIR"/config.json; then
+        echo "Config rewrite failed: placeholder still present -> $unexpected_value" >&2
+        exit 1
+    fi
+}
+
 if [ -d "$CODEBUILD_SRC_DIR"/crm/tests/load ]; then
     LOAD_TEST_DIR="$CODEBUILD_SRC_DIR"/crm/tests/load
 elif [ -d "$CODEBUILD_SRC_DIR"/crm/src/test/load ]; then
@@ -72,6 +88,10 @@ if docker info 2>/dev/null | grep -q "docker:dind" || [ "${DIND:-0}" = "1" ]; th
     escaped_dind_host=$(escape_sed_replacement "${dind_host}")
 
     sed -i "s|\"host\": \"prod\"|\"host\": \"${escaped_dind_host}\"|" "$LOAD_TEST_DIR"/config.json
+    if [ "$dind_host" != "prod" ]; then
+        assert_config_not_contains '"host": "prod"'
+    fi
+    assert_config_contains "\"host\": \"${dind_host}\""
     echo "✅ DinD mode: Keeping HTTP protocol and using container hostname '${dind_host}'"
 else
     echo "Configuring for production deployment"
@@ -89,6 +109,17 @@ else
     sed -i "s/3000/443/" "$LOAD_TEST_DIR"/config.json
     sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
     sed -i "s|continuous-deployment-header-value|${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
+
+    assert_config_not_contains '"protocol": "http"'
+    assert_config_not_contains 'localhost'
+    assert_config_not_contains '"port": "3000"'
+    assert_config_not_contains 'Continuous-Deployment-Header-Name'
+    assert_config_not_contains 'continuous-deployment-header-value'
+    assert_config_contains '"protocol": "https"'
+    assert_config_contains "\"host\": \"${CRM_URL}\""
+    assert_config_contains '"port": "443"'
+    assert_config_contains "aws-cf-cd-${CLOUDFRONT_HEADER}"
+    assert_config_contains "${CLOUDFRONT_HEADER}"
 fi
 
 echo "k6 installation completed successfully!"
