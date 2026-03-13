@@ -61,13 +61,18 @@ cp "$LOAD_TEST_DIR"/config.json.dist "$LOAD_TEST_DIR"/config.json || {
     exit 1
 }
 
-# Check if we're in DinD mode and configure accordingly
+# Check if we're in DinD mode and configure accordingly.
+# In the CRM test compose file, the service hostname is `prod`, so keep that
+# default unless a different explicit DinD host is provided.
 # Force DinD mode detection for docker:dind image
 if docker info 2>/dev/null | grep -q "docker:dind" || [ "${DIND:-0}" = "1" ]; then
     echo "Configuring for DinD mode - using container networking"
-    # For DinD mode, use container names and HTTP protocol
-    sed -i 's/"host": "prod"/"host": "crm-prod"/' "$LOAD_TEST_DIR"/config.json
-    echo "✅ DinD mode: Keeping HTTP protocol and using container name 'crm-prod'"
+    # For DinD mode, use the Docker Compose service hostname and HTTP protocol.
+    dind_host="${CRM_DIND_LOAD_TEST_HOST:-prod}"
+    escaped_dind_host=$(escape_sed_replacement "${dind_host}")
+
+    sed -i "s|\"host\": \"prod\"|\"host\": \"${escaped_dind_host}\"|" "$LOAD_TEST_DIR"/config.json
+    echo "✅ DinD mode: Keeping HTTP protocol and using container hostname '${dind_host}'"
 else
     echo "Configuring for production deployment"
     if [ -z "${CRM_URL:-}" ] || [ -z "${CLOUDFRONT_HEADER:-}" ]; then
