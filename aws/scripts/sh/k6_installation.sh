@@ -36,25 +36,34 @@ k6 version || {
     exit 1
 }
 
+if [ -d "$CODEBUILD_SRC_DIR"/crm/tests/load ]; then
+    LOAD_TEST_DIR="$CODEBUILD_SRC_DIR"/crm/tests/load
+elif [ -d "$CODEBUILD_SRC_DIR"/crm/src/test/load ]; then
+    LOAD_TEST_DIR="$CODEBUILD_SRC_DIR"/crm/src/test/load
+else
+    echo "Failed to locate CRM load test directory" >&2
+    exit 1
+fi
+
 # Configure load test settings
 echo "Configuring load test settings..."
-cat "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json.dist > "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
+cat "$LOAD_TEST_DIR"/config.json.dist > "$LOAD_TEST_DIR"/config.json
 
 # Check if we're in DinD mode and configure accordingly
 # Force DinD mode detection for docker:dind image
 if docker info 2>/dev/null | grep -q "docker:dind" || [ "${DIND:-0}" = "1" ]; then
     echo "Configuring for DinD mode - using container networking"
     # For DinD mode, use container names and HTTP protocol
-    sed -i 's/"host": "prod"/"host": "crm-prod"/' "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
+    sed -i 's/"host": "prod"/"host": "crm-prod"/' "$LOAD_TEST_DIR"/config.json
     echo "✅ DinD mode: Keeping HTTP protocol and using container name 'crm-prod'"
 else
     echo "Configuring for production deployment"
     # For production deployment, use external URLs
-    sed -i "s/http/https/" "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
-    sed -i "s/localhost/$CRM_URL/" "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
-    sed -i "s/3000/443/" "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
-    sed -i "s/Continuous-Deployment-Header-Name/aws-cf-cd-$CLOUDFRONT_HEADER/" "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
-    sed -i "s/continuous-deployment-header-value/$CLOUDFRONT_HEADER/" "$CODEBUILD_SRC_DIR"/crm/src/test/load/config.json
+    sed -i "s/http/https/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s/localhost/$CRM_URL/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s/3000/443/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s/Continuous-Deployment-Header-Name/aws-cf-cd-$CLOUDFRONT_HEADER/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s/continuous-deployment-header-value/$CLOUDFRONT_HEADER/" "$LOAD_TEST_DIR"/config.json
 fi
 
 echo "k6 installation completed successfully!"
