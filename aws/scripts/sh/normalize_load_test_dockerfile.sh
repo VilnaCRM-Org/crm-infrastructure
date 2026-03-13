@@ -20,14 +20,15 @@ fi
 echo "Normalizing CRM load-test Dockerfile base images: $LOAD_TEST_DOCKERFILE"
 
 sed -i \
-    -e 's|^FROM golang:\([^[:space:]]*\)\( AS .*\)\?$|FROM public.ecr.aws/docker/library/golang:\1\2|' \
-    -e 's|^FROM golang:\([^[:space:]]*\)\( as .*\)\?$|FROM public.ecr.aws/docker/library/golang:\1\2|' \
-    -e 's|^FROM alpine:\([^[:space:]]*\)$|FROM public.ecr.aws/docker/library/alpine:\1|' \
-    -e 's|^FROM alpine$|FROM public.ecr.aws/docker/library/alpine:latest|' \
+    -E \
+    -e 's|^([Ff][Rr][Oo][Mm][[:space:]]+)(--platform=[^[:space:]]+[[:space:]]+)?(docker\.io/library/)?golang:([^[:space:]]+)([[:space:]]+[Aa][Ss][[:space:]]+[^[:space:]]+)?$|\1\2public.ecr.aws/docker/library/golang:\4\5|' \
+    -e 's|^([Ff][Rr][Oo][Mm][[:space:]]+)(--platform=[^[:space:]]+[[:space:]]+)?(docker\.io/library/)?alpine:([^[:space:]]+)([[:space:]]+[Aa][Ss][[:space:]]+[^[:space:]]+)?$|\1\2public.ecr.aws/docker/library/alpine:\4\5|' \
+    -e 's|^([Ff][Rr][Oo][Mm][[:space:]]+)(--platform=[^[:space:]]+[[:space:]]+)?(docker\.io/library/)?alpine([[:space:]]+[Aa][Ss][[:space:]]+[^[:space:]]+)?$|\1\2public.ecr.aws/docker/library/alpine:latest\4|' \
     "$LOAD_TEST_DOCKERFILE"
 
-if grep -Eq '^FROM (golang:|alpine(:|$))' "$LOAD_TEST_DOCKERFILE"; then
-    echo "Load-test Dockerfile still references Docker Hub base images after normalization." >&2
+if offending_refs=$(grep -Ei '^[Ff][Rr][Oo][Mm][[:space:]]+(--platform=[^[:space:]]+[[:space:]]+)?(docker\.io/library/)?(golang:|alpine([:[:space:]]|$))' "$LOAD_TEST_DOCKERFILE"); then
+    echo "Load-test Dockerfile still references Docker Hub base images after normalization:" >&2
+    echo "$offending_refs" >&2
     exit 1
 fi
 
