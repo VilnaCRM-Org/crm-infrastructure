@@ -294,10 +294,11 @@ locals {
         env_variables = merge(
           local.common_sandbox_env_variables,
           {
-            "CI"                      = "1",
-            "NODEJS_VERSION"          = var.runtime_versions.nodejs,
-            "BUCKET_NAME"             = var.bucket_name,
-            "CRM_GIT_REPOSITORY_LINK" = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
+            "CI"                        = "1",
+            "NODEJS_VERSION"            = var.runtime_versions.nodejs,
+            "BUCKET_NAME"               = var.bucket_name,
+            "CRM_GIT_REPOSITORY_BRANCH" = var.crm_repo_branch,
+            "CRM_GIT_REPOSITORY_LINK"   = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
           }
         )
       },
