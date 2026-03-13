@@ -11,8 +11,13 @@ phases:
           exit 1
         fi
 
-        if [ -z "${PR_NUMBER}" ]; then
-          echo "Error: Required environment variable PR_NUMBER is not set or empty."
+        if [ -z "${IS_PULL_REQUEST}" ]; then
+          echo "Error: Required environment variable IS_PULL_REQUEST is not set or empty."
+          exit 1
+        fi
+
+        if [ "${IS_PULL_REQUEST}" = "1" ] && [ -z "${PR_NUMBER}" ]; then
+          echo "Error: Required environment variable PR_NUMBER is not set or empty for PR executions."
           exit 1
         fi
       - apk add --no-cache docker-cli docker-compose bash git make nodejs npm curl unzip jq aws-cli tar github-cli
@@ -27,14 +32,16 @@ phases:
         bash <<'EOF'
         set -euo pipefail
         . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/docker_failure_logging.sh"
-        COMMENT_BODY="The deployment process for the sandbox has started.
-        Please wait until the latest version is ready"
+        if [ "${IS_PULL_REQUEST}" = "1" ]; then
+          COMMENT_BODY="The deployment process for the sandbox has started.
+          Please wait until the latest version is ready"
 
-        . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
+          . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
-        if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-          echo "Failed to add comment to PR"
-          exit 1
+          if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+            echo "Failed to add comment to PR"
+            exit 1
+          fi
         fi
         echo "#### Build Project"
         export CRM_DIR="${CRM_DIR:-/codebuild-user/crm}"
@@ -56,7 +63,7 @@ phases:
         set -euo pipefail
         echo "Post-build phase: Checking if build failed to post comment..."
 
-        if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then
+        if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ] && [ "${IS_PULL_REQUEST}" = "1" ]; then
           if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
             COMMENT_BODY="❌ Sandbox Deployment Failed"$'\n'"The deployment to the sandbox environment has failed."$'\n'"Please review the CodeBuild logs and try again. 🔧"
 
