@@ -14,6 +14,7 @@ phases:
     commands:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
+      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/normalize_load_test_dockerfile.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/k6_installation.sh"
 
