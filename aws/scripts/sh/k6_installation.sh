@@ -47,7 +47,15 @@ fi
 
 # Configure load test settings
 echo "Configuring load test settings..."
-cat "$LOAD_TEST_DIR"/config.json.dist > "$LOAD_TEST_DIR"/config.json
+if [ ! -f "$LOAD_TEST_DIR"/config.json.dist ]; then
+    echo "Missing load-test template: $LOAD_TEST_DIR/config.json.dist" >&2
+    exit 1
+fi
+
+cp "$LOAD_TEST_DIR"/config.json.dist "$LOAD_TEST_DIR"/config.json || {
+    echo "Failed to create $LOAD_TEST_DIR/config.json" >&2
+    exit 1
+}
 
 # Check if we're in DinD mode and configure accordingly
 # Force DinD mode detection for docker:dind image
@@ -58,12 +66,17 @@ if docker info 2>/dev/null | grep -q "docker:dind" || [ "${DIND:-0}" = "1" ]; th
     echo "✅ DinD mode: Keeping HTTP protocol and using container name 'crm-prod'"
 else
     echo "Configuring for production deployment"
+    if [ -z "${CRM_URL:-}" ] || [ -z "${CLOUDFRONT_HEADER:-}" ]; then
+        echo "CRM_URL and CLOUDFRONT_HEADER must be set for production load-test config" >&2
+        exit 1
+    fi
+
     # For production deployment, use external URLs
     sed -i "s/http/https/" "$LOAD_TEST_DIR"/config.json
-    sed -i "s/localhost/$CRM_URL/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|localhost|${CRM_URL}|g" "$LOAD_TEST_DIR"/config.json
     sed -i "s/3000/443/" "$LOAD_TEST_DIR"/config.json
-    sed -i "s/Continuous-Deployment-Header-Name/aws-cf-cd-$CLOUDFRONT_HEADER/" "$LOAD_TEST_DIR"/config.json
-    sed -i "s/continuous-deployment-header-value/$CLOUDFRONT_HEADER/" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${CLOUDFRONT_HEADER}|g" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|continuous-deployment-header-value|${CLOUDFRONT_HEADER}|g" "$LOAD_TEST_DIR"/config.json
 fi
 
 echo "k6 installation completed successfully!"
