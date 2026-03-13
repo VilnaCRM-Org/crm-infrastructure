@@ -16,8 +16,8 @@ phases:
           exit 1
         fi
 
-        if [ "${IS_PULL_REQUEST}" = "1" ] && [ -z "${PR_NUMBER}" ]; then
-          echo "Error: Required environment variable PR_NUMBER is not set or empty for PR executions."
+        if [ "${IS_PULL_REQUEST}" = "1" ] && { [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "0" ]; }; then
+          echo "Error: Required environment variable PR_NUMBER must be set to a valid pull request number for PR executions."
           exit 1
         fi
       - apk add --no-cache docker-cli docker-compose bash git make nodejs npm curl unzip jq aws-cli tar github-cli
@@ -32,7 +32,7 @@ phases:
         bash <<'EOF'
         set -euo pipefail
         . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/docker_failure_logging.sh"
-        if [ "${IS_PULL_REQUEST}" = "1" ]; then
+        if [ "${IS_PULL_REQUEST}" = "1" ] && [ "${PR_NUMBER}" != "0" ]; then
           COMMENT_BODY="The deployment process for the sandbox has started.
           Please wait until the latest version is ready"
 
@@ -63,7 +63,7 @@ phases:
         set -euo pipefail
         echo "Post-build phase: Checking if build failed to post comment..."
 
-        if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ] && [ "${IS_PULL_REQUEST}" = "1" ]; then
+        if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ] && [ "${IS_PULL_REQUEST}" = "1" ] && [ "${PR_NUMBER}" != "0" ]; then
           if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
             COMMENT_BODY="❌ Sandbox Deployment Failed"$'\n'"The deployment to the sandbox environment has failed."$'\n'"Please review the CodeBuild logs and try again. 🔧"
 
@@ -75,6 +75,8 @@ phases:
           else
             echo "GitHub authentication failed - skipping failure comment."
           fi
+        elif [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then
+          echo "Build failed but no valid PR context was provided. Skipping failure comment."
         else
           echo "Build succeeded - no failure comment needed."
         fi
