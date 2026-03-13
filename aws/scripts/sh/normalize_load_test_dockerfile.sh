@@ -2,10 +2,12 @@
 
 set -e
 
-for candidate in \
-    "$CODEBUILD_SRC_DIR"/crm/tests/load/Dockerfile \
+dockerfile_candidates=(
+    "$CODEBUILD_SRC_DIR"/crm/tests/load/Dockerfile
     "$CODEBUILD_SRC_DIR"/crm/src/test/load/Dockerfile
-do
+)
+
+for candidate in "${dockerfile_candidates[@]}"; do
     if [ -f "$candidate" ]; then
         LOAD_TEST_DOCKERFILE="$candidate"
         break
@@ -14,6 +16,7 @@ done
 
 if [ -z "${LOAD_TEST_DOCKERFILE:-}" ]; then
     echo "Failed to locate CRM load-test Dockerfile." >&2
+    printf 'Checked paths:\n- %s\n' "${dockerfile_candidates[@]}" >&2
     exit 1
 fi
 
@@ -33,4 +36,4 @@ if offending_refs=$(grep -Ei '^[Ff][Rr][Oo][Mm][[:space:]]+(--platform=[^[:space
 fi
 
 echo "Using load-test Dockerfile base images:"
-grep '^FROM ' "$LOAD_TEST_DOCKERFILE"
+grep -Ei '^[Ff][Rr][Oo][Mm][[:space:]]+' "$LOAD_TEST_DOCKERFILE"
