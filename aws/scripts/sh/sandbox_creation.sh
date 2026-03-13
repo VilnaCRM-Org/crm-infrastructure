@@ -9,7 +9,13 @@ if aws s3api head-bucket --bucket "$PROJECT_NAME-$BRANCH_NAME" 2>/dev/null; then
 else
     echo "Bucket $PROJECT_NAME-$BRANCH_NAME does not exist. Creating bucket..."
 
-    if ! aws s3api create-bucket --bucket "$PROJECT_NAME-$BRANCH_NAME" --region "$AWS_DEFAULT_REGION" --create-bucket-configuration LocationConstraint="$AWS_DEFAULT_REGION"; then
+    if [ "$AWS_DEFAULT_REGION" = "us-east-1" ]; then
+        CREATE_BUCKET_CMD=(aws s3api create-bucket --bucket "$PROJECT_NAME-$BRANCH_NAME" --region "$AWS_DEFAULT_REGION")
+    else
+        CREATE_BUCKET_CMD=(aws s3api create-bucket --bucket "$PROJECT_NAME-$BRANCH_NAME" --region "$AWS_DEFAULT_REGION" --create-bucket-configuration "LocationConstraint=$AWS_DEFAULT_REGION")
+    fi
+
+    if ! "${CREATE_BUCKET_CMD[@]}"; then
         echo "Error: Failed to create bucket."
         exit 1
     fi
