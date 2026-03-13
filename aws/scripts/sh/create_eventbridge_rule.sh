@@ -84,6 +84,10 @@ wildcard_statement_id="AllowEventBridgeInvokeSandboxCrmCleanup"
 wildcard_source_arn="arn:aws:events:$region:$account_id:rule/sandbox-crm-cleanup-*"
 lambda_policy=$(aws lambda get-policy --function-name sandbox-crm-cleanup-lambda --region "$region" 2>/dev/null || true)
 
+refresh_lambda_policy() {
+  lambda_policy=$(aws lambda get-policy --function-name sandbox-crm-cleanup-lambda --region "$region" 2>/dev/null || true)
+}
+
 has_wildcard_permission() {
   [ -n "$lambda_policy" ] || return 1
 
@@ -103,24 +107,68 @@ has_wildcard_permission() {
   ' >/dev/null 2>&1
 }
 
+has_conflicting_statement_id() {
+  [ -n "$lambda_policy" ] || return 1
+
+  printf '%s' "$lambda_policy" | jq -e --arg sid "$wildcard_statement_id" --arg source_arn "$wildcard_source_arn" '
+    .Policy
+    | fromjson
+    | (.Statement // [])
+    | map(select(.Sid == $sid))
+    | map(
+        (
+          .Principal.Service // ""
+        ) != "events.amazonaws.com"
+        or (
+          .Action // ""
+        ) != "lambda:InvokeFunction"
+        or (
+          .Condition.ArnLike."AWS:SourceArn"
+          // .Condition.StringLike."AWS:SourceArn"
+          // ""
+        ) != $source_arn
+      )
+    | any
+  ' >/dev/null 2>&1
+}
+
 if has_wildcard_permission; then
   echo "Lambda already has wildcard permission for sandbox CRM cleanup rules."
 else
   echo "🔒 Ensuring EventBridge can invoke sandbox CRM cleanup Lambda..."
-  if ! aws lambda add-permission \
+  permission_granted=0
+
+  if has_conflicting_statement_id; then
+    echo "Removing existing Lambda permission with statement ID $wildcard_statement_id before replacing it."
+    aws lambda remove-permission \
+      --function-name sandbox-crm-cleanup-lambda \
+      --statement-id "$wildcard_statement_id" \
+      --region "$region"
+    refresh_lambda_policy
+  fi
+
+  if aws lambda add-permission \
     --function-name sandbox-crm-cleanup-lambda \
     --statement-id "$wildcard_statement_id" \
     --action "lambda:InvokeFunction" \
     --principal events.amazonaws.com \
     --source-arn "$wildcard_source_arn" \
     --region "$region"; then
-    lambda_policy=$(aws lambda get-policy --function-name sandbox-crm-cleanup-lambda --region "$region" 2>/dev/null || true)
+    permission_granted=1
+    refresh_lambda_policy
+  else
+    refresh_lambda_policy
     if ! has_wildcard_permission; then
       echo "Failed to grant wildcard permission for EventBridge to invoke Lambda."
       exit 1
     fi
   fi
-  echo "Wildcard permission granted for sandbox CRM cleanup rules."
+
+  if [ "$permission_granted" -eq 1 ]; then
+    echo "Wildcard permission granted for sandbox CRM cleanup rules."
+  else
+    echo "Wildcard permission present/verified for sandbox CRM cleanup rules."
+  fi
 fi
 
 echo "Ready! Lambda will be triggered automatically after 7 days."
