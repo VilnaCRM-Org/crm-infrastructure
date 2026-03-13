@@ -1,6 +1,7 @@
 import json
 import os
 
+
 def create_crm_configuration(
     output_path: str = "crm_configuration.json",
 ) -> None:
@@ -24,7 +25,9 @@ def create_crm_configuration(
     print(f"Config has been written to {output_path}")
 
 
-def create_s3_policy(branch_name: str, project_name: str, output_path: str = "s3_policy.json") -> None:
+def create_s3_policy(
+    branch_name: str, project_name: str, output_path: str = "s3_policy.json"
+) -> None:
     bucket_name = f"{project_name}-{branch_name}"
     policy_document = {
         "Version": "2012-10-17",
