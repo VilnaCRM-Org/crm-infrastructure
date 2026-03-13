@@ -27,7 +27,7 @@ else
 fi
 
 if ! grep -q '\.tfenv/bin' "$PROFILE_FILE" 2>/dev/null; then
-    if ! echo 'export PATH="$HOME/.tfenv/bin:$PATH"' >>"$PROFILE_FILE"; then
+    if ! echo "export PATH=\"\$HOME/.tfenv/bin:\$PATH\"" >>"$PROFILE_FILE"; then
         echo "Failed to update PATH in .bash_profile"
         exit 1
     fi
