@@ -20,9 +20,12 @@ if [ -z "$GITHUB_TOKEN" ]; then
   exit 1
 fi
 EXPIRY=$(echo "$SECRET_VALUE" | jq -r '.expires_at // empty')
-if [[ -n "$EXPIRY" ]] && [[ "$(date -u +%s)" -gt "$(date -u -d "$EXPIRY" +%s)" ]]; then
-  echo "Error: GitHub token has expired."
-  exit 1
+if [[ -n "$EXPIRY" ]]; then
+  EXPIRY_EPOCH=$(python3 -c 'from datetime import datetime; import sys; print(int(datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00")).timestamp()))' "$EXPIRY")
+  if [[ "$(date -u +%s)" -gt "$EXPIRY_EPOCH" ]]; then
+    echo "Error: GitHub token has expired."
+    exit 1
+  fi
 fi
 if ! [[ $GITHUB_TOKEN =~ ^gh[ps]_[a-zA-Z0-9]{36,40}$ ]]; then
   echo "Error: Invalid GitHub token format."

@@ -1,11 +1,6 @@
 import json
 import os
 
-try:
-    ACCOUNT_ID = os.environ["ACCOUNT_ID"]
-except KeyError as e:
-    raise ValueError(f"Required environment variable {e} is not set") from e
-
 
 def create_crm_configuration(
     output_path: str = "crm_configuration.json",
@@ -19,7 +14,7 @@ def create_crm_configuration(
         },
     }
 
-    json_string = json.dumps(config, indent=2)
+    json_string = json.dumps(config, indent=4)
 
     try:
         with open(output_path, "w") as file:
@@ -30,21 +25,27 @@ def create_crm_configuration(
     print(f"Config has been written to {output_path}")
 
 
-def create_s3_policy(output_path: str = "policy.json") -> None:
+def create_s3_policy(
+    branch_name: str, project_name: str, output_path: str = "s3_policy.json"
+) -> None:
+    bucket_name = f"{project_name}-{branch_name}"
     policy_document = {
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "PublicReadGetObject",
                 "Effect": "Allow",
-                "Principal": "*",
+                "Principal": {
+                    "AWS": "*",
+                },
                 "Action": "s3:GetObject",
-                "Resource": f"arn:aws:s3:::{os.environ['BUCKET_NAME']}/*",
+                "Resource": [
+                    f"arn:aws:s3:::{bucket_name}/*",
+                ],
             },
         ],
     }
 
-    json_string = json.dumps(policy_document, indent=2)
+    json_string = json.dumps(policy_document, indent=4)
 
     try:
         with open(output_path, "w") as file:
@@ -56,8 +57,15 @@ def create_s3_policy(output_path: str = "policy.json") -> None:
 
 
 def main() -> None:
+    branch_name = os.environ.get("BRANCH_NAME")
+    project_name = os.environ.get("PROJECT_NAME")
+    if not branch_name or not project_name:
+        raise ValueError(
+            f"Missing required env vars: BRANCH_NAME={branch_name}, PROJECT_NAME={project_name}"
+        )
+
     create_crm_configuration()
-    create_s3_policy()
+    create_s3_policy(branch_name=branch_name, project_name=project_name)
 
 
 if __name__ == "__main__":

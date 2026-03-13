@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "s3_policy_doc" {
     actions = [
       "s3:PutBucketAcl",
       "s3:PutBucketPolicy",
-      "s3:PutBucketCrm",
+      "s3:PutBucketWebsite",
       "s3:PutObject",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketOwnerShipControls",
@@ -18,4 +18,4 @@ data "aws_iam_policy_document" "s3_policy_doc" {
       "arn:aws:s3:::${var.project_name}-*",
     ]
   }
-} 
+}

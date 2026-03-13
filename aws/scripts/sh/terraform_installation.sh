@@ -2,37 +2,37 @@
 
 # terraform_installation.sh
 #
-# Purpose: Sets up infrastructure management tools for sandbox-crm environments
-# Context: Part of the CI/CD pipeline for deploying sandbox-crm infrastructure
+# Purpose: Sets up infrastructure management tools for Terraform/Terraspace builds
+# Context: Part of the CI/CD pipelines for deploying CRM infrastructure
 # Requirements:
 #   - AWS CodeBuild environment
 #   - Ruby for Terraform testing
 #   - RPM package manager
 
-echo "## Install OpenTofu"
-if ! curl --proto "=https" --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh; then
-    echo "Failed to download OpenTofu installation script"
-    exit 1
-fi
-chmod +x install-opentofu.sh
-if ! ./install-opentofu.sh --install-method rpm; then
-    echo "OpenTofu installation failed"
-    rm install-opentofu.sh
-    exit 1
-fi
-rm install-opentofu.sh
-
 echo "## Install Terraform"
-if ! git clone https://github.com/tfutils/tfenv.git ~/.tfenv; then
-    echo "Failed to clone tfenv repository"
-    exit 1
+TERRAFORM_VERSION="${TERRAFORM_VERSION:-1.14.3}"
+TFENV_DIR="${HOME}/.tfenv"
+PROFILE_FILE="${HOME}/.bash_profile"
+
+if [ -d "$TFENV_DIR" ]; then
+    if ! git -C "$TFENV_DIR" pull --ff-only; then
+        echo "Failed to update tfenv repository"
+        exit 1
+    fi
+else
+    if ! git clone --depth=1 https://github.com/tfutils/tfenv.git "$TFENV_DIR"; then
+        echo "Failed to clone tfenv repository"
+        exit 1
+    fi
 fi
 
-if ! echo "export PATH=\"$HOME/.tfenv/bin:\$PATH\"" >>~/.bash_profile; then
-    echo "Failed to update PATH in .bash_profile"
-    exit 1
+if ! grep -q '\.tfenv/bin' "$PROFILE_FILE" 2>/dev/null; then
+    if ! echo "export PATH=\"\$HOME/.tfenv/bin:\$PATH\"" >>"$PROFILE_FILE"; then
+        echo "Failed to update PATH in .bash_profile"
+        exit 1
+    fi
 fi
-export PATH="$HOME/.tfenv/bin:$PATH"
+export PATH="$TFENV_DIR/bin:$PATH"
 
 tfenv install "${TERRAFORM_VERSION}" || { echo "Failed to install Terraform ${TERRAFORM_VERSION}"; exit 1; }
 tfenv use "${TERRAFORM_VERSION}" || { echo "Failed to switch to Terraform ${TERRAFORM_VERSION}"; exit 1; }

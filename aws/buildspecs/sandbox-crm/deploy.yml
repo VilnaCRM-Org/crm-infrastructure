@@ -10,53 +10,56 @@ phases:
           echo "Error: Required environment variable BRANCH_NAME is not set or empty."
           exit 1
         fi
-      - apk add --no-cache docker-cli docker-compose bash git make curl unzip jq aws-cli tar github-cli
-      - echo "Starting Docker daemon..."
-      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+
+        if [ -z "${PR_NUMBER}" ]; then
+          echo "Error: Required environment variable PR_NUMBER is not set or empty."
+          exit 1
+        fi
+      - apk add --no-cache docker-cli docker-compose bash git make nodejs npm curl unzip jq aws-cli tar github-cli
+      - npm install -g n
+      - n 23.10.0
+      - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/setup_docker.sh"
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sandbox_installation.sh"
 
   build:
     commands:
       - |
-        if [ "${IS_PULL_REQUEST}" = "1" ] && [ -n "${PR_NUMBER}" ] && [ "${PR_NUMBER}" != "null" ]; then
-          COMMENT_BODY="The deployment process for the sandbox has started.
-          Please wait until the latest version is ready"
+        bash <<'EOF'
+        set -euo pipefail
+        . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/docker_failure_logging.sh"
+        COMMENT_BODY="The deployment process for the sandbox has started.
+        Please wait until the latest version is ready"
 
-          . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
+        . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
-          if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-            echo "Failed to add comment to PR"
-            exit 1
-          fi
-        else
-          echo "Skipping start comment because PR metadata is unavailable."
+        if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+          echo "Failed to add comment to PR"
+          exit 1
         fi
-      - "echo #### Build Project"
-      - export CRM_DIR=${CRM_DIR:-/codebuild-user/crm}
-      - cd "$CRM_DIR"
-      - echo "=== Checking Docker daemon status ==="
-      - docker info || echo "Docker daemon not ready yet, continuing..."
-      - echo "=== Building Docker image ==="
-      - "make build-out"
-      - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sanitize_branch.sh"
-      - echo "=== Verifying build output ==="
-      - ls -la ./out
-      - 'aws s3 sync out s3://$PROJECT_NAME-$BRANCH_NAME || { echo "S3 sync failed"; exit 1; }'
-      - "echo #### Create EventBridge Rule"
-      - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/create_eventbridge_rule.sh"
+        echo "#### Build Project"
+        export CRM_DIR="${CRM_DIR:-/codebuild-user/crm}"
+        cd "$CRM_DIR"
+        echo "=== Building Docker image ==="
+        make build-out
+        . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/sanitize_branch.sh"
+        echo "=== Verifying build output ==="
+        ls -la ./out
+        aws s3 sync out "s3://$PROJECT_NAME-$BRANCH_NAME" || { echo "S3 sync failed"; exit 1; }
+        echo "#### Create EventBridge Rule"
+        . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/create_eventbridge_rule.sh"
+        EOF
 
   post_build:
     commands:
       - |
+        bash <<'EOF'
+        set -euo pipefail
         echo "Post-build phase: Checking if build failed to post comment..."
 
-        if [ "$CODEBUILD_BUILD_SUCCEEDING" != "1" ]; then
-          if [ "${IS_PULL_REQUEST}" != "1" ] || [ -z "${PR_NUMBER}" ] || [ "${PR_NUMBER}" = "null" ]; then
-            echo "Skipping failure comment because PR metadata is unavailable."
-          elif . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
+        if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then
+          if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
             COMMENT_BODY="❌ Sandbox Deployment Failed"$'\n'"The deployment to the sandbox environment has failed."$'\n'"Please review the CodeBuild logs and try again. 🔧"
 
-            # Post the comment to the PR
             if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
               echo "Failed to add failure comment to PR, but not failing the build for this."
             else
@@ -68,6 +71,7 @@ phases:
         else
           echo "Build succeeded - no failure comment needed."
         fi
+        EOF
 
 artifacts:
   files:
