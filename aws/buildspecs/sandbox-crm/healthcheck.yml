@@ -93,11 +93,16 @@ phases:
           if [ "${IS_PULL_REQUEST}" = "1" ]; then
             echo "Health check passed. Running create_pr_comment script..."
             comment_output=""
+            comment_status=0
             if comment_output=$(bash "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_pr_comment.sh" 2>&1); then
-               printf '%s\n' "$comment_output"
+               :
             else
                comment_status=$?
-               printf '%s\n' "$comment_output"
+            fi
+
+            printf '%s\n' "$comment_output"
+
+            if [ "${comment_status}" -ne 0 ]; then
                echo "Warning: create_pr_comment.sh failed with exit code ${comment_status}; sandbox healthy, PR comment skipped."
             fi
           else

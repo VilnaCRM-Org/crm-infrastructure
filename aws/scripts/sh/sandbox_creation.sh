@@ -32,12 +32,6 @@ else
         exit 1
     fi
 
-    echo "Creating S3 configuration files..."
-    if ! python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/s3_sandbox_configuration.py"; then
-        echo "Error: Failed to create S3 configuration files."
-        exit 1
-    fi
-
     if ! aws s3api put-bucket-website --bucket "$PROJECT_NAME-$BRANCH_NAME" --website-configuration file://crm_configuration.json --region "$AWS_DEFAULT_REGION"; then
         echo "Error: Failed to configure static website hosting."
         exit 1

@@ -118,8 +118,7 @@ else
     assert_config_contains '"protocol": "https"'
     assert_config_contains "\"host\": \"${CRM_URL}\""
     assert_config_contains '"port": "443"'
-    assert_config_contains "aws-cf-cd-${CLOUDFRONT_HEADER}"
-    assert_config_contains "${CLOUDFRONT_HEADER}"
+    assert_config_contains "\"aws-cf-cd-${CLOUDFRONT_HEADER}\": \"${CLOUDFRONT_HEADER}\""
 fi
 
 echo "k6 installation completed successfully!"

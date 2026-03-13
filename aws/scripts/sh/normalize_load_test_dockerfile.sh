@@ -30,7 +30,7 @@ sed -i \
     -e 's|^([Ff][Rr][Oo][Mm][[:space:]]+)(--platform=[^[:space:]]+[[:space:]]+)?(docker\.io/library/)?alpine([[:space:]]+[Aa][Ss][[:space:]]+[^[:space:]]+)?$|\1\2public.ecr.aws/docker/library/alpine:latest\4|' \
     "$LOAD_TEST_DOCKERFILE"
 
-if offending_refs=$(grep -Ei '^[Ff][Rr][Oo][Mm][[:space:]]+(--platform=[^[:space:]]+[[:space:]]+)?docker\.io/library/(golang([:[:space:]]|$)|alpine([:[:space:]]|$))' "$LOAD_TEST_DOCKERFILE"); then
+if offending_refs=$(grep -Ei '^[Ff][Rr][Oo][Mm][[:space:]]+(--platform=[^[:space:]]+[[:space:]]+)?((docker\.io/library/)?(golang|alpine))([:[:space:]]|$)' "$LOAD_TEST_DOCKERFILE"); then
     echo "Load-test Dockerfile still references Docker Hub base images after normalization:" >&2
     echo "$offending_refs" >&2
     exit 1
