@@ -77,17 +77,15 @@ phases:
 
           if [ "${IS_PULL_REQUEST}" = "1" ]; then
             echo "Adding failure comment to PR..."
-            if ! . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
-              echo "GitHub authentication failed."
-              exit 1
-            fi
+            if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
+              COMMENT_BODY=":x: Health check failed for the sandbox CRM website.
+              Please check the CodeBuild logs for detailed error information."
 
-            COMMENT_BODY=":x: Health check failed for the sandbox CRM website.
-            Please check the CodeBuild logs for detailed error information."
-
-            if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-              echo "Failed to add error comment to PR"
-              exit 1
+              if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+                echo "Failed to add error comment to PR, continuing with healthcheck failure."
+              fi
+            else
+              echo "GitHub authentication failed - skipping failure comment."
             fi
           fi
           exit 1
@@ -95,8 +93,7 @@ phases:
           if [ "${IS_PULL_REQUEST}" = "1" ]; then
             echo "Health check passed. Running create_pr_comment script..."
             if ! bash "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_pr_comment.sh"; then
-               echo "Failed to execute create_pr_comment.sh"
-               exit 1
+               echo "Failed to execute create_pr_comment.sh, but sandbox is healthy."
             fi
           else
             echo "Health check passed. Skipping PR comment for non-PR execution."
