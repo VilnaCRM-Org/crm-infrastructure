@@ -105,6 +105,16 @@ terraspace-plan-stacks: ## Plan a list of stacks into stack-named plan files. Va
 terraspace-ci-cd-infra-plan: ## Plan the stacks used by the CI/CD CRM infrastructure pipeline. Variables: env.
 	$(MAKE) terraspace-plan-stacks stacks="$(CI_CD_INFRA_STACKS)" env=$(if $(env),$(env),$(TS_ENV))
 
+terraspace-up-plan-stacks: ## Apply a list of stack plan files. Variables: env, stacks.
+	@[ -n "$(strip $(stacks))" ] || { $(ECHO) 'Error: terraspace-up-plan-stacks requires stacks="..."'; exit 1; }
+	@for stack in $(stacks); do \
+		$(ECHO) "## TERRASPACE UP : $$stack"; \
+		$(MAKE) terraspace-up-plan stack="$$stack" plan="$$stack.plan" env=$(if $(env),$(env),$(TS_ENV)) || exit 1; \
+	done
+
+terraspace-ci-cd-infra-up-plan: ## Apply the stack plans used by the CI/CD CRM infrastructure pipeline. Variables: env.
+	$(MAKE) terraspace-up-plan-stacks stacks="$(CI_CD_INFRA_STACKS)" env=$(if $(env),$(env),$(TS_ENV))
+
 terraspace-all-plan: ## Plan all the stacks. Variables: env.
 	$(EXEC_TS) all plan -y 
 

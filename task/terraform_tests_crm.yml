@@ -14,7 +14,7 @@ tasks:
   format:
     desc: "Format Terraform code"
     cmds:
-      - terraform fmt -recursive
+      - terraform fmt -check -diff -recursive
     silent: false
 
   checkov:

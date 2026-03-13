@@ -24,10 +24,7 @@ phases:
       - "echo ## Getting Token from Secrets Manager"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/retrieve_token.sh"
       - "echo ## TERRASPACE UP : Bringing up the infrastructure"
-      - 'make terraspace-up-plan stack="ci-cd-infrastructure-crm" plan="ci-cd-infrastructure-crm.plan"'
-      - 'make terraspace-up-plan stack="ci-cd-iam" plan="ci-cd-iam.plan"'
-      - 'make terraspace-up-plan stack="crm-iam" plan="crm-iam.plan"'
-      - 'make terraspace-up-plan stack="iam-groups" plan="iam-groups.plan"'
+      - "make terraspace-ci-cd-infra-up-plan"
 
 artifacts:
   files:

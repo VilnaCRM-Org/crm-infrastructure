@@ -77,7 +77,10 @@ phases:
 
           if [ "${IS_PULL_REQUEST}" = "1" ]; then
             echo "Adding failure comment to PR..."
-            . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
+            if ! . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
+              echo "GitHub authentication failed."
+              exit 1
+            fi
 
             COMMENT_BODY=":x: Health check failed for the sandbox CRM website.
             Please check the CodeBuild logs for detailed error information."

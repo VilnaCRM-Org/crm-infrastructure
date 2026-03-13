@@ -20,7 +20,6 @@ phases:
       - n 23.10.0
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/setup_docker.sh"
       - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/sandbox_installation.sh"
-      - ". ${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
 
   build:
     commands:

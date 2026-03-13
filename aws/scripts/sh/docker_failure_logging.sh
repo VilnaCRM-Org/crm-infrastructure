@@ -44,6 +44,10 @@ run_with_timeout() {
         done
         if kill -0 "$pid" >/dev/null 2>&1; then
             kill "$pid" >/dev/null 2>&1 || true
+            sleep 1
+            if kill -0 "$pid" >/dev/null 2>&1; then
+                kill -9 "$pid" >/dev/null 2>&1 || true
+            fi
             wait "$pid" 2>/dev/null || true
             return 124
         fi
@@ -78,6 +82,13 @@ docker_failure_logs() {
         *[!0-9]*)
             echo "docker_failure_logs: exit_code must be an integer" >&2
             return 1
+            ;;
+    esac
+
+    case "$log_lines" in
+        *[!0-9]*)
+            echo "docker_failure_logs: DOCKER_FAILURE_LOG_LINES must be numeric; falling back to 200" >&2
+            log_lines=200
             ;;
     esac
 
@@ -187,12 +198,33 @@ enable_docker_failure_logging() {
     export DOCKER_FAILURE_LOGGING_ENABLED=1
     DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW=$(trap -p EXIT || true)
     DOCKER_FAILURE_EXISTING_EXIT_TRAP=""
-    case "${DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW}" in
-        "trap -- '"*"' EXIT")
-            DOCKER_FAILURE_EXISTING_EXIT_TRAP=${DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW#trap -- \'}
-            DOCKER_FAILURE_EXISTING_EXIT_TRAP=${DOCKER_FAILURE_EXISTING_EXIT_TRAP%\' EXIT}
-            ;;
-    esac
+
+    extract_exit_trap_command() {
+        local raw="$1"
+        case "$raw" in
+            "trap -- '"*"' EXIT")
+                raw=${raw#trap -- \'}
+                raw=${raw%\' EXIT}
+                ;;
+            "trap '"*"' EXIT")
+                raw=${raw#trap \'}
+                raw=${raw%\' EXIT}
+                ;;
+            "trap -- \""*"\" EXIT")
+                raw=${raw#trap -- \"}
+                raw=${raw%\" EXIT}
+                ;;
+            "trap \""*"\" EXIT")
+                raw=${raw#trap \"}
+                raw=${raw%\" EXIT}
+                ;;
+            *)
+                raw=""
+                ;;
+        esac
+        printf '%s' "$raw"
+    }
+    DOCKER_FAILURE_EXISTING_EXIT_TRAP=$(extract_exit_trap_command "${DOCKER_FAILURE_EXISTING_EXIT_TRAP_RAW}")
 
     docker_exit_trap() {
         local status=$?

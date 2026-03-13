@@ -1,13 +1,6 @@
 import json
 import os
 
-try:
-    BRANCH_NAME = os.environ["BRANCH_NAME"]
-    PROJECT_NAME = os.environ["PROJECT_NAME"]
-except KeyError as e:
-    raise ValueError(f"Required environment variable {e} is not set") from e
-
-
 def create_crm_configuration(
     output_path: str = "crm_configuration.json",
 ) -> None:
@@ -31,8 +24,10 @@ def create_crm_configuration(
     print(f"Config has been written to {output_path}")
 
 
-def create_s3_policy(output_path: str = "s3_policy.json") -> None:
+def create_s3_policy(branch_name: str, project_name: str, output_path: str = "s3_policy.json") -> None:
+    bucket_name = f"{project_name}-{branch_name}"
     policy_document = {
+        "Version": "2012-10-17",
         "Statement": [
             {
                 "Effect": "Allow",
@@ -41,8 +36,7 @@ def create_s3_policy(output_path: str = "s3_policy.json") -> None:
                 },
                 "Action": "s3:GetObject",
                 "Resource": [
-                    f"arn:aws:s3:::{PROJECT_NAME}-{BRANCH_NAME}/*",
-                    f"arn:aws:s3:::{PROJECT_NAME}-{BRANCH_NAME}",
+                    f"arn:aws:s3:::{bucket_name}/*",
                 ],
             },
         ],
@@ -60,8 +54,15 @@ def create_s3_policy(output_path: str = "s3_policy.json") -> None:
 
 
 def main() -> None:
+    branch_name = os.environ.get("BRANCH_NAME")
+    project_name = os.environ.get("PROJECT_NAME")
+    if not branch_name or not project_name:
+        raise ValueError(
+            f"Missing required env vars: BRANCH_NAME={branch_name}, PROJECT_NAME={project_name}"
+        )
+
     create_crm_configuration()
-    create_s3_policy()
+    create_s3_policy(branch_name=branch_name, project_name=project_name)
 
 
 if __name__ == "__main__":
