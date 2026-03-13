@@ -36,6 +36,10 @@ k6 version || {
     exit 1
 }
 
+escape_sed_replacement() {
+    printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
 if [ -d "$CODEBUILD_SRC_DIR"/crm/tests/load ]; then
     LOAD_TEST_DIR="$CODEBUILD_SRC_DIR"/crm/tests/load
 elif [ -d "$CODEBUILD_SRC_DIR"/crm/src/test/load ]; then
@@ -72,11 +76,14 @@ else
     fi
 
     # For production deployment, use external URLs
+    escaped_crm_url=$(escape_sed_replacement "${CRM_URL}")
+    escaped_cloudfront_header=$(escape_sed_replacement "${CLOUDFRONT_HEADER}")
+
     sed -i "s/http/https/" "$LOAD_TEST_DIR"/config.json
-    sed -i "s|localhost|${CRM_URL}|g" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|localhost|${escaped_crm_url}|g" "$LOAD_TEST_DIR"/config.json
     sed -i "s/3000/443/" "$LOAD_TEST_DIR"/config.json
-    sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${CLOUDFRONT_HEADER}|g" "$LOAD_TEST_DIR"/config.json
-    sed -i "s|continuous-deployment-header-value|${CLOUDFRONT_HEADER}|g" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
+    sed -i "s|continuous-deployment-header-value|${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
 fi
 
 echo "k6 installation completed successfully!"
