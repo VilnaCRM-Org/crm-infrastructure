@@ -7,6 +7,10 @@ locals {
   crm_infra_arns       = { for key, policy in var.policy_arns : key => policy if startswith(key, "crm_infra_") }
   crm_bucket_arn       = "arn:aws:s3:::${var.crm_bucket_name}"
   crm_bucket_files_arn = "arn:aws:s3:::${var.crm_bucket_name}/*"
+  cloudfront_distribution_arns = [
+    for distribution_id in distinct(compact(var.cloudfront_distribution_ids)) :
+    "arn:${data.aws_partition.current.partition}:cloudfront::${local.account_id}:distribution/${distribution_id}"
+  ]
 }
 
 locals {

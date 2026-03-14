@@ -159,6 +159,12 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "cloudfront_distribution_ids" {
+  description = "CloudFront distribution IDs managed by the CRM shared-infra pipelines"
+  type        = list(string)
+  default     = []
+}
+
 variable "script_dir" {
   description = "Directory containing scripts for CodeBuild"
   type        = string

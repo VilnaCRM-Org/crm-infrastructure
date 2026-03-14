@@ -9,6 +9,7 @@ source_repo_branch       = "main"
 crm_repo_branch          = "main"
 crm_url                  = "app.vilnacrmtest.com"
 bucket_name              = "app.vilnacrmtest.com"
+cloudfront_distribution_ids = ["E3SGUV1IXMCCOF"]
 
 tags = {
   Project     = "crm-test"

@@ -133,18 +133,20 @@ data "aws_iam_policy_document" "terraform_ci_cd_policy_document" {
     resources = ["*"]
   }
 
-  statement {
-    sid    = "CloudFrontDistributionManagementPolicy"
-    effect = "Allow"
-    actions = [
-      "cloudfront:GetDistribution",
-      "cloudfront:GetDistributionConfig",
-      "cloudfront:DisassociateDistributionWebACL",
-      "cloudfront:UpdateDistribution",
-    ]
-    resources = [
-      "arn:aws:cloudfront::${local.account_id}:distribution/*",
-    ]
+  dynamic "statement" {
+    for_each = length(local.cloudfront_distribution_arns) > 0 ? [local.cloudfront_distribution_arns] : []
+
+    content {
+      sid    = "CloudFrontDistributionManagementPolicy"
+      effect = "Allow"
+      actions = [
+        "cloudfront:GetDistribution",
+        "cloudfront:GetDistributionConfig",
+        "cloudfront:DisassociateDistributionWebACL",
+        "cloudfront:UpdateDistribution",
+      ]
+      resources = statement.value
+    }
   }
 
   statement {
