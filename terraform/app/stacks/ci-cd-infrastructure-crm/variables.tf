@@ -121,27 +121,62 @@ variable "crm_url" {
 
 variable "ci_cd_infra_stage_input" {
   description = "List of maps containing information about the stages of the CI/CD Infrastructure CodePipeline"
-  type        = list(map(any))
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = any
+    output_artifacts = string
+  }))
 }
 
 variable "crm_infra_stage_input" {
   description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(any))
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = any
+    output_artifacts = string
+  }))
 }
 
 variable "sandbox_stage_input" {
   description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(any))
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = any
+    output_artifacts = string
+  }))
 }
 
 variable "sandbox_deletion_stage_input" {
   description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(any))
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = any
+    output_artifacts = string
+  }))
 }
 
 variable "ci_cd_crm_stage_input" {
   description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(any))
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = any
+    output_artifacts = string
+  }))
 }
 
 variable "codebuild_environment" {
