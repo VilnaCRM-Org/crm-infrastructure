@@ -6,8 +6,9 @@ resource "aws_sns_topic" "cloudwatch_alerts_notifications" {
 }
 
 resource "aws_sns_topic_policy" "cloudwatch_alerts_notifications" {
+  count  = length(var.cloudwatch_alarms_arns) > 0 ? 1 : 0
   arn    = aws_sns_topic.cloudwatch_alerts_notifications.arn
-  policy = data.aws_iam_policy_document.cloudwatch_alerts_sns_topic_doc.json
+  policy = data.aws_iam_policy_document.cloudwatch_alerts_sns_topic_doc[0].json
 
   depends_on = [aws_sns_topic.cloudwatch_alerts_notifications]
 }

@@ -45,19 +45,35 @@ resource "aws_s3_bucket_lifecycle_configuration" "logging_bucket_lifecycle_confi
       days = var.s3_logs_lifecycle_configuration.deletion_days
     }
 
-    transition {
-      days          = var.s3_logs_lifecycle_configuration.standard_ia_transition_days
-      storage_class = "STANDARD_IA"
+    noncurrent_version_expiration {
+      noncurrent_days = var.s3_logs_lifecycle_configuration.deletion_days
     }
 
-    transition {
-      days          = var.s3_logs_lifecycle_configuration.glacier_transition_days
-      storage_class = "GLACIER"
+    dynamic "transition" {
+      for_each = lookup(var.s3_logs_lifecycle_configuration, "standard_ia_transition_days", 0) > 0 ? [1] : []
+
+      content {
+        days          = var.s3_logs_lifecycle_configuration.standard_ia_transition_days
+        storage_class = "STANDARD_IA"
+      }
     }
 
-    transition {
-      days          = var.s3_logs_lifecycle_configuration.deep_archive_transition_days
-      storage_class = "DEEP_ARCHIVE"
+    dynamic "transition" {
+      for_each = lookup(var.s3_logs_lifecycle_configuration, "glacier_transition_days", 0) > 0 ? [1] : []
+
+      content {
+        days          = var.s3_logs_lifecycle_configuration.glacier_transition_days
+        storage_class = "GLACIER"
+      }
+    }
+
+    dynamic "transition" {
+      for_each = lookup(var.s3_logs_lifecycle_configuration, "deep_archive_transition_days", 0) > 0 ? [1] : []
+
+      content {
+        days          = var.s3_logs_lifecycle_configuration.deep_archive_transition_days
+        storage_class = "DEEP_ARCHIVE"
+      }
     }
 
     status = "Enabled"

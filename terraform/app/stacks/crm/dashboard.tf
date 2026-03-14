@@ -1,4 +1,5 @@
 module "crm_dashboard" {
+  count  = var.enable_waf ? 1 : 0
   source = "../../modules/aws/cloudwatch/crm-dashboard"
 
   project_name = var.project_name

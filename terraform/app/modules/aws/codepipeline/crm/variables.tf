@@ -78,3 +78,8 @@ variable "cloudwatch_log_group_retention_days" {
   description = "Retention time of Cloudwatch log group logs"
   type        = number
 }
+
+variable "enable_cloudwatch_alarms" {
+  description = "Whether to create CloudWatch alarms for the crm pipeline"
+  type        = bool
+}
