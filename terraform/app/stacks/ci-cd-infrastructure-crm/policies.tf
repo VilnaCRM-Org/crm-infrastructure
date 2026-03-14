@@ -3,10 +3,10 @@ module "ci_cd_infra_policies" {
 
   policy_prefix = "${var.environment}-ci-cd-infra-crm"
 
-  project_name           = var.project_name
-  crm_project_name       = var.crm_infra_project_name
-  ci_cd_project_name     = var.ci_cd_infra_project_name
-  ci_cd_crm_project_name = var.ci_cd_crm_project_name
+  project_name                      = var.project_name
+  crm_project_name                  = var.crm_infra_project_name
+  ci_cd_project_name                = var.ci_cd_infra_project_name
+  ci_cd_crm_project_name            = var.ci_cd_crm_project_name
   ci_cd_crm_codebuild_project_names = sort(keys(local.ci_cd_crm_build_projects))
 
   region      = var.region
