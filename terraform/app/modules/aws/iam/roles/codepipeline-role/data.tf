@@ -310,40 +310,7 @@ data "aws_iam_policy_document" "terraform_iam_policy_document" {
       "iam:TagPolicy",
       "iam:DeletePolicyVersion"
     ]
-    resources = [
-      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.environment}-codepipeline-user-*-policy",
-      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.environment}-ci-cd-infra-crm-iam-policy",
-      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.environment}-ci-cd-infra-crm-general-policy",
-      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.environment}-codepipeline-user-codepipeline-policy",
-      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/ci-cd-crm-${var.environment}-oidc-codepipeline-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-dns-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-iam-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-general-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-cloudfront-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-s3-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-sns-policy",
-      "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-lambda-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-cloudfront-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-cloudwatch-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-codepipeline-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-iam-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-lambda-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-s3-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-kms-policy",
-      "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-billing-readonly-policy",
-      "arn:aws:iam::${local.account_id}:policy/QAPolicies/${var.environment}-qa-group-cloudfront-policy",
-      "arn:aws:iam::${local.account_id}:policy/QAPolicies/${var.environment}-qa-group-cloudwatch-policy",
-      "arn:aws:iam::${local.account_id}:policy/QAPolicies/${var.environment}-qa-group-codepipeline-policy",
-      "arn:aws:iam::${local.account_id}:policy/QAPolicies/${var.environment}-qa-group-s3-policy",
-      "arn:aws:iam::${local.account_id}:policy/FrontendPolicies/${var.environment}-frontend-group-cloudfront-policy",
-      "arn:aws:iam::${local.account_id}:policy/FrontendPolicies/${var.environment}-frontend-group-cloudwatch-policy",
-      "arn:aws:iam::${local.account_id}:policy/FrontendPolicies/${var.environment}-frontend-group-codepipeline-policy",
-      "arn:aws:iam::${local.account_id}:policy/FrontendPolicies/${var.environment}-frontend-group-s3-policy",
-      "arn:aws:iam::${local.account_id}:policy/BackendPolicies/${var.environment}-backend-group-cloudfront-policy",
-      "arn:aws:iam::${local.account_id}:policy/BackendPolicies/${var.environment}-backend-group-cloudwatch-policy",
-      "arn:aws:iam::${local.account_id}:policy/BackendPolicies/${var.environment}-backend-group-s3-policy",
-      "arn:aws:iam::${local.account_id}:policy/AdminPolicies/${var.environment}-admin-group-iam-policy",
-    ]
+    resources = local.terraform_iam_managed_policy_arns
   }
 
   statement {
@@ -405,22 +372,7 @@ data "aws_iam_policy_document" "terraform_iam_policy_document" {
       "iam:DeletePolicyVersion",
       "iam:UpdateAssumeRolePolicy"
     ]
-    resources = [
-      "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-${var.environment}-codepipeline-role-policy",
-      "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-${var.environment}-terraform-role-ci-cd-policy",
-      "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-${var.environment}-terraform-role-iam-policy",
-      "arn:aws:iam::${local.account_id}:policy/ci-cd-crm-${var.environment}-codepipeline-role-policy",
-      "arn:aws:iam::${local.account_id}:policy/crm-infra-${var.environment}-codepipeline-role-policy",
-      "arn:aws:iam::${local.account_id}:policy/crm-infra-${var.environment}-terraform-role-ci-cd-policy",
-      "arn:aws:iam::${local.account_id}:policy/crm-infra-${var.environment}-terraform-role-iam-policy",
-      "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-trigger-role-policy",
-      "arn:aws:iam::${local.account_id}:role/crm-infrastructure-trigger-role",
-      "arn:aws:iam::${local.account_id}:role/crm-deploy-trigger-role",
-      "arn:aws:iam::${local.account_id}:role/sandbox-crm-deletion-trigger-role",
-      "arn:aws:iam::${local.account_id}:role/sandbox-crm-creation-trigger-role",
-      "arn:aws:iam::${local.account_id}:role/ci-cd-infra-crm-trigger-role",
-      "arn:aws:iam::${local.account_id}:role/github-actions-crm-role",
-    ]
+    resources = local.codepipeline_role_policy_resources
   }
 
 }

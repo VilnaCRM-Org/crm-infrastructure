@@ -15,6 +15,24 @@ locals {
     "arn:aws:iam::${local.account_id}:policy/${var.crm_bucket_name}-iam-role-policy-replication",
     "arn:aws:iam::${local.account_id}:policy/staging.${var.crm_bucket_name}-iam-role-policy-replication",
   ]
+  terraform_iam_managed_policy_arns = [
+    "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.environment}-*",
+    "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/*-${var.environment}-*",
+    "arn:aws:iam::${local.account_id}:policy/CrmPolicies/${var.environment}-crm-user-*",
+    "arn:aws:iam::${local.account_id}:policy/DevOpsPolicies/${var.environment}-devops-group-*",
+    "arn:aws:iam::${local.account_id}:policy/QAPolicies/${var.environment}-qa-group-*",
+    "arn:aws:iam::${local.account_id}:policy/FrontendPolicies/${var.environment}-frontend-group-*",
+    "arn:aws:iam::${local.account_id}:policy/BackendPolicies/${var.environment}-backend-group-*",
+    "arn:aws:iam::${local.account_id}:policy/AdminPolicies/${var.environment}-admin-group-iam-policy",
+  ]
+  codepipeline_role_policy_resources = [
+    "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-${var.environment}-*",
+    "arn:aws:iam::${local.account_id}:policy/ci-cd-crm-${var.environment}-*",
+    "arn:aws:iam::${local.account_id}:policy/crm-infra-${var.environment}-*",
+    "arn:aws:iam::${local.account_id}:policy/ci-cd-infra-crm-trigger-role-policy",
+    "arn:aws:iam::${local.account_id}:role/*trigger-role",
+    "arn:aws:iam::${local.account_id}:role/github-actions-crm-role",
+  ]
 }
 
 locals {
