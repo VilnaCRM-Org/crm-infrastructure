@@ -13,6 +13,11 @@ variable "ci_cd_crm_project_name" {
   type        = string
 }
 
+variable "ci_cd_crm_stage_names" {
+  description = "CodeBuild stage names configured for the CRM deploy pipeline"
+  type        = list(string)
+}
+
 variable "region" {
   description = "Region for this project"
   type        = string
