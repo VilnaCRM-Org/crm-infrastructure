@@ -364,6 +364,21 @@ data "aws_iam_policy_document" "terraform_iam_policy_document" {
   }
 
   statement {
+    sid    = "AllowCrmReplicationPoliciesAccessPolicy"
+    effect = "Allow"
+    actions = [
+      "iam:CreatePolicy",
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:ListPolicyVersions",
+      "iam:CreatePolicyVersion",
+      "iam:TagPolicy",
+      "iam:DeletePolicyVersion"
+    ]
+    resources = local.replication_policy_arns
+  }
+
+  statement {
     sid    = "AllowCodePipelineRolePoliciesAccessPolicy"
     effect = "Allow"
     actions = [

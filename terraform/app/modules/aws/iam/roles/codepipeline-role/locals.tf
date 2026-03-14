@@ -11,6 +11,10 @@ locals {
     for distribution_id in distinct(compact(var.cloudfront_distribution_ids)) :
     "arn:${data.aws_partition.current.partition}:cloudfront::${local.account_id}:distribution/${distribution_id}"
   ]
+  replication_policy_arns = [
+    "arn:aws:iam::${local.account_id}:policy/${var.crm_bucket_name}-iam-role-policy-replication",
+    "arn:aws:iam::${local.account_id}:policy/staging.${var.crm_bucket_name}-iam-role-policy-replication",
+  ]
 }
 
 locals {
