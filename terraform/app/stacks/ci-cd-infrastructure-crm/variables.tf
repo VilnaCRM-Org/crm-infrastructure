@@ -126,7 +126,7 @@ variable "ci_cd_infra_stage_input" {
     category         = string
     owner            = string
     provider         = string
-    input_artifacts  = any
+    input_artifacts  = list(string)
     output_artifacts = string
   }))
 }
@@ -138,7 +138,7 @@ variable "crm_infra_stage_input" {
     category         = string
     owner            = string
     provider         = string
-    input_artifacts  = any
+    input_artifacts  = list(string)
     output_artifacts = string
   }))
 }
@@ -150,7 +150,7 @@ variable "sandbox_stage_input" {
     category         = string
     owner            = string
     provider         = string
-    input_artifacts  = any
+    input_artifacts  = list(string)
     output_artifacts = string
   }))
 }
@@ -162,7 +162,7 @@ variable "sandbox_deletion_stage_input" {
     category         = string
     owner            = string
     provider         = string
-    input_artifacts  = any
+    input_artifacts  = list(string)
     output_artifacts = string
   }))
 }
@@ -174,7 +174,7 @@ variable "ci_cd_crm_stage_input" {
     category         = string
     owner            = string
     provider         = string
-    input_artifacts  = any
+    input_artifacts  = list(string)
     output_artifacts = string
   }))
 }
