@@ -48,3 +48,4 @@ s3_logs_lifecycle_configuration = {
 
 enable_cloudwatch_alarms = false
 enable_waf               = false
+enable_canary            = false

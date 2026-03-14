@@ -109,6 +109,12 @@ variable "enable_waf" {
   type        = bool
 }
 
+variable "enable_canary" {
+  description = "Whether to create the crm heartbeat canary resources"
+  type        = bool
+  default     = true
+}
+
 variable "continuous_deployment_policy_type" {
   description = "Traffic config type for the CloudFront continuous deployment policy"
   type        = string
