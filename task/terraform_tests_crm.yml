@@ -14,7 +14,7 @@ tasks:
   format:
     desc: "Format Terraform code"
     cmds:
-      - terraform fmt -check -diff -recursive
+      - find ./terraform -path '*/.terraform/*' -prune -o -type f \( -name '*.tf' -o -name '*.tfvars' \) -print0 | xargs -0 -r terraform fmt -check -diff
     silent: false
 
   checkov:
