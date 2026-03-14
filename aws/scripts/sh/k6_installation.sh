@@ -106,7 +106,7 @@ else
 
     sed -i 's|"protocol": "http"|"protocol": "https"|' "$LOAD_TEST_DIR"/config.json
     sed -i "s|localhost|${escaped_crm_url}|g" "$LOAD_TEST_DIR"/config.json
-    sed -i "s/3000/443/" "$LOAD_TEST_DIR"/config.json
+    sed -i 's|"port": "3000"|"port": "443"|' "$LOAD_TEST_DIR"/config.json
     sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
     sed -i "s|continuous-deployment-header-value|${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
 
