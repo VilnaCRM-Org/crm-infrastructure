@@ -87,7 +87,11 @@ if docker info 2>/dev/null | grep -q "docker:dind" || [ "${DIND:-0}" = "1" ]; th
     dind_host="${CRM_DIND_LOAD_TEST_HOST:-prod}"
     escaped_dind_host=$(escape_sed_replacement "${dind_host}")
 
-    sed -i "s|\"host\": \"prod\"|\"host\": \"${escaped_dind_host}\"|" "$LOAD_TEST_DIR"/config.json
+    sed -i \
+        -e "s|\"host\": \"prod\"|\"host\": \"${escaped_dind_host}\"|" \
+        -e "s|\"host\": \"localhost\"|\"host\": \"${escaped_dind_host}\"|" \
+        "$LOAD_TEST_DIR"/config.json
+    assert_config_not_contains '"host": "localhost"'
     if [ "$dind_host" != "prod" ]; then
         assert_config_not_contains '"host": "prod"'
     fi
@@ -105,13 +109,21 @@ else
     escaped_cloudfront_header=$(escape_sed_replacement "${CLOUDFRONT_HEADER}")
 
     sed -i 's|"protocol": "http"|"protocol": "https"|' "$LOAD_TEST_DIR"/config.json
-    sed -i "s|localhost|${escaped_crm_url}|g" "$LOAD_TEST_DIR"/config.json
-    sed -i 's|"port": "3000"|"port": "443"|' "$LOAD_TEST_DIR"/config.json
+    sed -i \
+        -e "s|\"host\": \"prod\"|\"host\": \"${escaped_crm_url}\"|" \
+        -e "s|\"host\": \"localhost\"|\"host\": \"${escaped_crm_url}\"|" \
+        "$LOAD_TEST_DIR"/config.json
+    sed -i \
+        -e 's|"port": "3001"|"port": "443"|' \
+        -e 's|"port": "3000"|"port": "443"|' \
+        "$LOAD_TEST_DIR"/config.json
     sed -i "s|Continuous-Deployment-Header-Name|aws-cf-cd-${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
     sed -i "s|continuous-deployment-header-value|${escaped_cloudfront_header}|g" "$LOAD_TEST_DIR"/config.json
 
     assert_config_not_contains '"protocol": "http"'
-    assert_config_not_contains 'localhost'
+    assert_config_not_contains '"host": "prod"'
+    assert_config_not_contains '"host": "localhost"'
+    assert_config_not_contains '"port": "3001"'
     assert_config_not_contains '"port": "3000"'
     assert_config_not_contains 'Continuous-Deployment-Header-Name'
     assert_config_not_contains 'continuous-deployment-header-value'
