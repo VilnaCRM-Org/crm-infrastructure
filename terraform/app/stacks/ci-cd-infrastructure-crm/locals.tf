@@ -190,6 +190,7 @@ locals {
         "CLOUDFRONT_WEIGHT"         = var.continuous_deployment_policy_weight,
         "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
         "CLOUDFRONT_TYPE"           = var.continuous_deployment_policy_type,
+        "ENABLE_CLOUDFRONT_STAGING" = tostring(var.enable_cloudfront_staging),
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/deploy.yml" })

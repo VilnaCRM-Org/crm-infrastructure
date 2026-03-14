@@ -53,6 +53,11 @@ variable "continuous_deployment_policy_header" {
   type        = string
 }
 
+variable "enable_cloudfront_staging" {
+  description = "Whether CloudFront staging is enabled for the CRM deployment flow"
+  type        = bool
+}
+
 variable "crm_buildspecs" {
   description = "Buildspecs for Crm"
   type        = string

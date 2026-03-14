@@ -10,6 +10,7 @@ cloudfront_configuration = {
 continuous_deployment_policy_weight = 0.15
 continuous_deployment_policy_header = "staging"
 continuous_deployment_policy_type   = "SingleHeader"
+enable_cloudfront_staging           = true
 
 script_dir = "./aws/scripts"
 

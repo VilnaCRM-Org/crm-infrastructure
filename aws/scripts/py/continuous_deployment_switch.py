@@ -10,6 +10,9 @@ CLOUDFRONT_HEADER = os.environ["CLOUDFRONT_HEADER"]
 CLOUDFRONT_REGION = os.environ["CLOUDFRONT_REGION"]
 CLF_TYPE_ENV_VAR = "CLOUDFRONT_TYPE"
 CLOUDFRONT_TYPE = os.environ.get(CLF_TYPE_ENV_VAR, "SingleHeader")
+ENABLE_CLOUDFRONT_STAGING = (
+    os.environ.get("ENABLE_CLOUDFRONT_STAGING", "true").lower() == "true"
+)
 
 
 def create_config(staging_dns_name):
@@ -113,10 +116,15 @@ def update_continuous_deployment_policy(policy_id, policy_etag, config_filename)
 
 def main():
     print("Starting main function")
+    if not ENABLE_CLOUDFRONT_STAGING:
+        print("CloudFront staging is disabled, skipping continuous deployment switch")
+        return
     policies_list = fetch_continuous_deployment_policies()
-    policy_item = policies_list["ContinuousDeploymentPolicyList"]["Items"][0][
-        "ContinuousDeploymentPolicy"
-    ]
+    items = policies_list["ContinuousDeploymentPolicyList"].get("Items", [])
+    if not items:
+        print("No continuous deployment policy found, skipping switch")
+        return
+    policy_item = items[0]["ContinuousDeploymentPolicy"]
     policy_item_id = policy_item["Id"]
     print(f"Policy item id: {policy_item_id}")
 
