@@ -115,6 +115,12 @@ variable "enable_canary" {
   default     = true
 }
 
+variable "enable_access_logging" {
+  description = "Whether to enable S3 and CloudFront access logging for the CRM stack"
+  type        = bool
+  default     = true
+}
+
 variable "continuous_deployment_policy_type" {
   description = "Traffic config type for the CloudFront continuous deployment policy"
   type        = string
