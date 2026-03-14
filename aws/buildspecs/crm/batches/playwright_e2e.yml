@@ -24,8 +24,9 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh test-playwright-e2e"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'playwright e2e complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/playwright-e2e.txt"
 
 artifacts:
   files:
-    - "crm/playwright-e2e-reports/**/*"
-    - "crm/**/*"
+    - "codepipeline-artifacts/playwright-e2e.txt"

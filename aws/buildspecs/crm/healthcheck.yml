@@ -19,3 +19,10 @@ phases:
     commands:
       - "echo ## Test Crm Connection..."
       - "hurl --test --verbose --variable crm_url=$CRM_URL ${CODEBUILD_SRC_DIR}/${HURL_DIR}/healthcheck.hurl"
+    finally:
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'healthcheck complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/healthcheck.txt"
+
+artifacts:
+  files:
+    - "codepipeline-artifacts/healthcheck.txt"

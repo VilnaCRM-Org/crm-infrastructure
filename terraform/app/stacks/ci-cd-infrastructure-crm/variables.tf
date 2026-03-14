@@ -121,27 +121,27 @@ variable "crm_url" {
 
 variable "ci_cd_infra_stage_input" {
   description = "List of maps containing information about the stages of the CI/CD Infrastructure CodePipeline"
-  type        = list(map(string))
+  type        = list(map(any))
 }
 
 variable "crm_infra_stage_input" {
   description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(string))
+  type        = list(map(any))
 }
 
 variable "sandbox_stage_input" {
   description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(string))
+  type        = list(map(any))
 }
 
 variable "sandbox_deletion_stage_input" {
   description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(string))
+  type        = list(map(any))
 }
 
 variable "ci_cd_crm_stage_input" {
   description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(string))
+  type        = list(map(any))
 }
 
 variable "codebuild_environment" {

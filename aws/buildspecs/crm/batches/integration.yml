@@ -24,7 +24,9 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_unit_mutation_integration_lint.sh test-integration"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'integration complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/integration.txt"
 
 artifacts:
   files:
-    - "crm/**/*"
+    - "codepipeline-artifacts/integration.txt"

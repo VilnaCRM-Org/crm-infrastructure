@@ -25,10 +25,13 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/retrieve_token.sh"
       - "echo ## TERRASPACE UP : Bringing up the infrastructure"
       - "make terraspace-ci-cd-infra-up-plan"
+    finally:
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'up complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/up.txt"
 
 artifacts:
   files:
-    - "**/*"
+    - "codepipeline-artifacts/up.txt"
 
 cache:
   paths:

@@ -26,10 +26,13 @@ phases:
       - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/distribution_deploy.py"
       - "echo Triggering CI-CD Crm Pipeline"
       - "aws codepipeline start-pipeline-execution --name $CI_CD_CRM_PIPELINE_NAME || { echo 'Error starting CodePipeline'; exit 1; }"
+    finally:
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'up complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/up.txt"
 
 artifacts:
   files:
-    - "**/*"
+    - "codepipeline-artifacts/up.txt"
 cache:
   paths:
     - "/bin"

@@ -24,8 +24,9 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_lhci_leak.sh test-lighthouse-desktop"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'lighthouse desktop complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/lighthouse-desktop.txt"
 
 artifacts:
   files:
-    - "crm/lhci-reports-desktop/**/*"
-    - "crm/**/*"
+    - "codepipeline-artifacts/lighthouse-desktop.txt"
