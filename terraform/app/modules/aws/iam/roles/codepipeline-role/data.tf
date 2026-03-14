@@ -133,6 +133,17 @@ data "aws_iam_policy_document" "terraform_ci_cd_policy_document" {
     resources = ["*"]
   }
 
+  statement {
+    sid    = "CodeBuildProjectReadPolicy"
+    effect = "Allow"
+    actions = [
+      "codebuild:BatchGetProjects",
+    ]
+    resources = [
+      "arn:aws:codebuild:${data.aws_region.current.id}:${local.account_id}:project/*",
+    ]
+  }
+
   dynamic "statement" {
     for_each = length(local.cloudfront_distribution_arns) > 0 ? [local.cloudfront_distribution_arns] : []
 

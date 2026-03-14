@@ -25,8 +25,7 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/retrieve_token.sh"
       - "echo ## TERRASPACE PLAN : Generate the Terraform Plan"
       - "make terraspace-ci-cd-infra-plan"
-      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/plans"
-      - "cp ./*.plan ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/plans/"
+      - "bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/stage_plan_artifacts.sh"
 
 artifacts:
   files:

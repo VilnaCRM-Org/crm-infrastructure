@@ -24,6 +24,7 @@ phases:
       - "echo ## Getting Token from Secrets Manager"
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/retrieve_token.sh"
       - "echo ## TERRASPACE UP : Bringing up the infrastructure"
+      - "bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/restore_plan_artifacts.sh"
       - "make terraspace-ci-cd-infra-up-plan"
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
