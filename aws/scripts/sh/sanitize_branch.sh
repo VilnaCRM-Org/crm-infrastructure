@@ -18,7 +18,7 @@ max_suffix_length=47
 if [ -n "${PROJECT_NAME:-}" ]; then
   computed_max_suffix_length=$((63 - ${#PROJECT_NAME} - 1))
   if [ "$computed_max_suffix_length" -lt 10 ]; then
-    echo "Error: PROJECT_NAME '$PROJECT_NAME' cannot fit a combined S3-safe name with BRANCH_NAME." >&2
+    echo "Error: PROJECT_NAME '$PROJECT_NAME' leaves only ${computed_max_suffix_length} characters for the branch suffix; need at least 10 to keep \${PROJECT_NAME}-\${BRANCH_NAME} S3-safe." >&2
     exit 1
   fi
   max_suffix_length=$computed_max_suffix_length
