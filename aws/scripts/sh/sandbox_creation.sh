@@ -2,6 +2,11 @@
 
 set -e
 
+if [ -z "${PROJECT_NAME:-}" ] || [ -z "${BRANCH_NAME:-}" ] || [ -z "${AWS_DEFAULT_REGION:-}" ]; then
+    echo "Error: PROJECT_NAME, BRANCH_NAME, and AWS_DEFAULT_REGION must be set."
+    exit 1
+fi
+
 echo "Checking if bucket $PROJECT_NAME-$BRANCH_NAME exists..."
 
 if aws s3api head-bucket --bucket "$PROJECT_NAME-$BRANCH_NAME" 2>/dev/null; then

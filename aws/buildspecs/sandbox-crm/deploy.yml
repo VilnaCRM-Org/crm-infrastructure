@@ -36,11 +36,12 @@ phases:
           COMMENT_BODY="The deployment process for the sandbox has started.
           Please wait until the latest version is ready"
 
-          . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"
-
-          if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
-            echo "Failed to add comment to PR"
-            exit 1
+          if . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/gh_auth_login.sh"; then
+            if ! gh pr comment "$PR_NUMBER" -R "$GITHUB_REPOSITORY" --body "$COMMENT_BODY"; then
+              echo "Failed to add start comment to PR, continuing deployment."
+            fi
+          else
+            echo "GitHub authentication failed - skipping start comment."
           fi
         fi
         echo "#### Build Project"
