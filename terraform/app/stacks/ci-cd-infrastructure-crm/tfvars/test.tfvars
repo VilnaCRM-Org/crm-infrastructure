@@ -15,6 +15,17 @@ tags = {
   Environment = "test"
 }
 
+s3_artifacts_bucket_files_deletion_days = 2
+
+s3_logs_lifecycle_configuration = {
+  standard_ia_transition_days  = 0
+  glacier_transition_days      = 0
+  deep_archive_transition_days = 0
+  deletion_days                = 30
+}
+
+enable_cloudwatch_alarms = false
+
 ci_cd_infra_stage_input = [
   { name = "validate", category = "Test", owner = "AWS", provider = "CodeBuild", input_artifacts = "SourceOutput", output_artifacts = "ValidateOutput" },
   { name = "plan", category = "Test", owner = "AWS", provider = "CodeBuild", input_artifacts = "ValidateOutput", output_artifacts = "PlanOutput" },

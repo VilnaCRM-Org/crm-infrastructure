@@ -174,6 +174,11 @@ variable "cloudwatch_log_group_retention_days" {
   type        = number
 }
 
+variable "enable_cloudwatch_alarms" {
+  description = "Whether to create CloudWatch alarms for CI/CD resources"
+  type        = bool
+}
+
 variable "lambda_python_version" {
   description = "Python version for Lambda"
   type        = string

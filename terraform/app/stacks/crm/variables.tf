@@ -93,6 +93,16 @@ variable "enable_cloudfront_staging" {
   type        = bool
 }
 
+variable "enable_cloudwatch_alarms" {
+  description = "Whether to create CloudWatch alarms for crm resources"
+  type        = bool
+}
+
+variable "enable_waf" {
+  description = "Whether to create and attach the crm WAF web ACL"
+  type        = bool
+}
+
 variable "continuous_deployment_policy_type" {
   description = "Traffic config type for the CloudFront continuous deployment policy"
   type        = string
