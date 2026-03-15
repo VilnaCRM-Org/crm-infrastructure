@@ -220,13 +220,16 @@ def main():
     distributions = find_project_distributions(BUCKET_NAME)
     if not distributions:
         print(
-            f"No CloudFront distributions found for bucket {BUCKET_NAME}, nothing to do"
+            "No CloudFront distributions found for bucket "
+            f"{BUCKET_NAME}, treating WAF disassociation as a no-op"
         )
-        return
+        return 0
 
     for distribution in distributions:
         prepare_distribution(distribution)
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
