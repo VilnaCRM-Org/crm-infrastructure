@@ -22,6 +22,7 @@ phases:
 artifacts:
   files:
     - "Makefile"
+    - "aws/canary/**/*"
     - "aws/buildspecs/crm/**/*"
     - "aws/scripts/**/*"
     - "terraform/**/*"
