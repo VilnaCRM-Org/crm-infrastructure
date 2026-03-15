@@ -4,6 +4,7 @@ phases:
   install:
     commands:
       - "python3 --version"
+      - '[ -n "${CRM_URL:-}" ] || { echo "CRM_URL must be set for the CRM healthcheck"; exit 1; }'
   build:
     commands:
       - "echo ## Test Crm Connection..."

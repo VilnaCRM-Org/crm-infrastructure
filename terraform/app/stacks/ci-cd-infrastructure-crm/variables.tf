@@ -120,7 +120,7 @@ variable "crm_url" {
 }
 
 variable "ci_cd_infra_stage_input" {
-  description = "List of maps containing information about the stages of the CI/CD Infrastructure CodePipeline"
+  description = "List of stage objects for the CI/CD Infrastructure CodePipeline actions"
   type = list(object({
     name             = string
     category         = string
@@ -132,7 +132,7 @@ variable "ci_cd_infra_stage_input" {
 }
 
 variable "crm_infra_stage_input" {
-  description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
+  description = "List of stage objects for the CRM Infrastructure CodePipeline actions"
   type = list(object({
     name             = string
     category         = string
@@ -144,7 +144,7 @@ variable "crm_infra_stage_input" {
 }
 
 variable "sandbox_stage_input" {
-  description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
+  description = "List of stage objects for the sandbox-crm CodePipeline actions"
   type = list(object({
     name             = string
     category         = string
@@ -156,7 +156,7 @@ variable "sandbox_stage_input" {
 }
 
 variable "sandbox_deletion_stage_input" {
-  description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
+  description = "List of stage objects for the sandbox-crm deletion CodePipeline actions"
   type = list(object({
     name             = string
     category         = string
@@ -168,7 +168,7 @@ variable "sandbox_deletion_stage_input" {
 }
 
 variable "ci_cd_crm_stage_input" {
-  description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
+  description = "List of stage objects for the CI/CD CRM CodePipeline actions"
   type = list(object({
     name             = string
     category         = string

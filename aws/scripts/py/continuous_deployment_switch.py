@@ -11,7 +11,8 @@ CLOUDFRONT_REGION = os.environ["CLOUDFRONT_REGION"]
 CLF_TYPE_ENV_VAR = "CLOUDFRONT_TYPE"
 CLOUDFRONT_TYPE = os.environ.get(CLF_TYPE_ENV_VAR, "SingleHeader")
 ENABLE_CLOUDFRONT_STAGING = (
-    os.environ.get("ENABLE_CLOUDFRONT_STAGING", "true").lower() == "true"
+    os.environ.get("ENABLE_CLOUDFRONT_STAGING", "").strip().lower()
+    not in {"false", "0", "no"}
 )
 
 
