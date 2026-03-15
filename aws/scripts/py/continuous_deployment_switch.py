@@ -10,10 +10,9 @@ CLOUDFRONT_HEADER = os.environ["CLOUDFRONT_HEADER"]
 CLOUDFRONT_REGION = os.environ["CLOUDFRONT_REGION"]
 CLF_TYPE_ENV_VAR = "CLOUDFRONT_TYPE"
 CLOUDFRONT_TYPE = os.environ.get(CLF_TYPE_ENV_VAR, "SingleHeader")
-ENABLE_CLOUDFRONT_STAGING = (
-    os.environ.get("ENABLE_CLOUDFRONT_STAGING", "").strip().lower()
-    not in {"false", "0", "no"}
-)
+ENABLE_CLOUDFRONT_STAGING = os.environ.get(
+    "ENABLE_CLOUDFRONT_STAGING", ""
+).strip().lower() not in {"false", "0", "no"}
 
 
 def create_config(staging_dns_name):
