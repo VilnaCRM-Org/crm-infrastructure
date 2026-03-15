@@ -1,3 +1,14 @@
+locals {
+  ci_cd_crm_codebuild_project_names = sort([
+    "batch_unit_mutation_lint",
+    "deploy",
+    "healthcheck",
+    "batch_lhci_leak",
+    "batch_pw_load",
+    "release",
+  ])
+}
+
 module "codepipeline_policies" {
   source = "../../modules/aws/iam/policies/codepipeline"
 
@@ -6,7 +17,7 @@ module "codepipeline_policies" {
   crm_project_name                  = var.crm_project_name
   ci_cd_project_name                = var.ci_cd_project_name
   ci_cd_crm_project_name            = var.ci_cd_crm_project_name
-  ci_cd_crm_codebuild_project_names = []
+  ci_cd_crm_codebuild_project_names = local.ci_cd_crm_codebuild_project_names
   region                            = var.region
   environment                       = var.environment
 
