@@ -1,24 +1,13 @@
 version: 0.2
 
-env:
-  variables:
-    HURL_VERSION: "6.0.0"
-    HURL: "./target/release/hurl-installation"
-    HURL_DIR: "./hurl"
-
 phases:
   install:
     commands:
-      - "dnf install -y pkg-config gcc openssl-devel libxml2-devel clang-devel"
-      - "curl https://sh.rustup.rs -sSf | sh -s -- -y"
-      - "source $HOME/.cargo/env"
-      - "rustc --version"
-      - "cargo --version"
-      - "cargo install hurl"
+      - "python3 --version"
   build:
     commands:
       - "echo ## Test Crm Connection..."
-      - "hurl --test --verbose --variable crm_url=$CRM_URL ${CODEBUILD_SRC_DIR}/${HURL_DIR}/healthcheck.hurl"
+      - "python3 ${CODEBUILD_SRC_DIR}/aws/scripts/py/healthcheck.py --url https://${CRM_URL} --expect-cn ${CRM_URL} --expect-issuer-country US --expect-issuer-org Amazon --expect-issuer-cn-regex 'Amazon RSA 2048 M[0-9]+' --min-cert-days 30"
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'healthcheck complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/healthcheck.txt"
