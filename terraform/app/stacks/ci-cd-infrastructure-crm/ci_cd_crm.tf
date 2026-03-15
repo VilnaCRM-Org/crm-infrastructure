@@ -53,7 +53,8 @@ module "ci_cd_crm_codebuild" {
   depends_on = [
     module.ci_cd_crm_s3_artifacts_bucket,
     module.ci_cd_crm_codepipeline_iam_role,
-    module.codestar_connection
+    module.ci_cd_infra_policies,
+    module.codestar_connection,
   ]
 }
 
