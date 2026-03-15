@@ -28,6 +28,12 @@ variable "s3_logs_lifecycle_configuration" {
   type        = map(number)
 }
 
+variable "s3_noncurrent_version_expiration_days" {
+  description = "Retention time for noncurrent versions in versioned CRM buckets"
+  type        = number
+  default     = 365
+}
+
 variable "s3_bucket_custom_name" {
   type        = string
   description = "Any non-empty string here will replace default name of bucket `var.domain_name`"
@@ -101,6 +107,18 @@ variable "enable_cloudwatch_alarms" {
 variable "enable_waf" {
   description = "Whether to create and attach the crm WAF web ACL"
   type        = bool
+}
+
+variable "enable_canary" {
+  description = "Whether to create the crm heartbeat canary resources"
+  type        = bool
+  default     = true
+}
+
+variable "enable_access_logging" {
+  description = "Whether to enable S3 and CloudFront access logging for the CRM stack"
+  type        = bool
+  default     = true
 }
 
 variable "continuous_deployment_policy_type" {

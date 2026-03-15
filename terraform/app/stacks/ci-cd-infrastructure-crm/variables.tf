@@ -53,6 +53,11 @@ variable "continuous_deployment_policy_header" {
   type        = string
 }
 
+variable "enable_cloudfront_staging" {
+  description = "Whether CloudFront staging is enabled for the CRM deployment flow"
+  type        = bool
+}
+
 variable "crm_buildspecs" {
   description = "Buildspecs for Crm"
   type        = string
@@ -115,28 +120,63 @@ variable "crm_url" {
 }
 
 variable "ci_cd_infra_stage_input" {
-  description = "List of maps containing information about the stages of the CI/CD Infrastructure CodePipeline"
-  type        = list(map(string))
+  description = "List of stage objects for the CI/CD Infrastructure CodePipeline actions"
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = list(string)
+    output_artifacts = string
+  }))
 }
 
 variable "crm_infra_stage_input" {
-  description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(string))
+  description = "List of stage objects for the CRM Infrastructure CodePipeline actions"
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = list(string)
+    output_artifacts = string
+  }))
 }
 
 variable "sandbox_stage_input" {
-  description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(string))
+  description = "List of stage objects for the sandbox-crm CodePipeline actions"
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = list(string)
+    output_artifacts = string
+  }))
 }
 
 variable "sandbox_deletion_stage_input" {
-  description = "List of maps containing information about the stages of the sandbox-crm CodePipeline"
-  type        = list(map(string))
+  description = "List of stage objects for the sandbox-crm deletion CodePipeline actions"
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = list(string)
+    output_artifacts = string
+  }))
 }
 
 variable "ci_cd_crm_stage_input" {
-  description = "List of maps containing information about the stages of the Crm Infrastructure CodePipeline"
-  type        = list(map(string))
+  description = "List of stage objects for the CI/CD CRM CodePipeline actions"
+  type = list(object({
+    name             = string
+    category         = string
+    owner            = string
+    provider         = string
+    input_artifacts  = list(string)
+    output_artifacts = string
+  }))
 }
 
 variable "codebuild_environment" {
@@ -152,6 +192,12 @@ variable "runtime_versions" {
 variable "bucket_name" {
   description = "S3 Bucket Name for content"
   type        = string
+}
+
+variable "cloudfront_distribution_ids" {
+  description = "CloudFront distribution IDs managed by the CRM shared-infra pipelines"
+  type        = list(string)
+  default     = []
 }
 
 variable "script_dir" {

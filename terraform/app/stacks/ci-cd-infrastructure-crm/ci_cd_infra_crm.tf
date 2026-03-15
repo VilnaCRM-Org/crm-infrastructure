@@ -25,7 +25,8 @@ module "ci_cd_infra_codepipeline_iam_role" {
   region      = var.region
   environment = var.environment
 
-  crm_bucket_name = var.bucket_name
+  crm_bucket_name             = var.bucket_name
+  cloudfront_distribution_ids = var.cloudfront_distribution_ids
 
   s3_bucket_arn           = module.ci_cd_infra_s3_artifacts_bucket.arn
   codestar_connection_arn = module.codestar_connection.arn
@@ -34,7 +35,10 @@ module "ci_cd_infra_codepipeline_iam_role" {
 
   tags = var.tags
 
-  depends_on = [module.ci_cd_infra_policies]
+  depends_on = [
+    module.ci_cd_infra_policies,
+    module.crm_infra_policies,
+  ]
 }
 
 module "ci_cd_infra_codebuild" {
@@ -54,7 +58,9 @@ module "ci_cd_infra_codebuild" {
   depends_on = [
     module.ci_cd_infra_s3_artifacts_bucket,
     module.ci_cd_infra_codepipeline_iam_role,
-    module.codestar_connection
+    module.ci_cd_infra_policies,
+    module.crm_infra_policies,
+    module.codestar_connection,
   ]
 }
 

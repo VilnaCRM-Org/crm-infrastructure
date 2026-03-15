@@ -24,8 +24,9 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_lhci_leak.sh test-lighthouse-mobile"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'lighthouse mobile complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/lighthouse-mobile.txt"
 
 artifacts:
   files:
-    - "crm/lhci-reports-mobile/**/*"
-    - "crm/**/*"
+    - "codepipeline-artifacts/lighthouse-mobile.txt"

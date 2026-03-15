@@ -42,10 +42,13 @@ resource "aws_cloudfront_distribution" "this" {
   is_ipv6_enabled     = true
   default_root_object = var.cloudfront_configuration.default_root_object
 
-  logging_config {
-    include_cookies = false
-    bucket          = var.logging_bucket_domain_name
-    prefix          = "cloudfront-logs/"
+  dynamic "logging_config" {
+    for_each = var.enable_access_logging && var.logging_bucket_domain_name != null ? [1] : []
+    content {
+      include_cookies = false
+      bucket          = var.logging_bucket_domain_name
+      prefix          = "cloudfront-logs/"
+    }
   }
 
   default_cache_behavior {
@@ -103,15 +106,13 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   wait_for_deployment = true
-
-  depends_on = [aws_cloudfront_continuous_deployment_policy.continuous_deployment_policy]
-
 }
 
 resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
   #checkov:skip=CKV2_AWS_47: Log4j protection already included in AWSManagedRulesKnownBadInputsRuleSet
   #checkov:skip=CKV_AWS_174: Minimum TLS version enforced via module input and dynamic viewer_certificate block
   provider = aws.us-east-1
+  count    = var.enable_cloudfront_staging ? 1 : 0
   staging  = true
   enabled  = true
 
@@ -149,10 +150,13 @@ resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
   is_ipv6_enabled     = true
   default_root_object = var.cloudfront_configuration.default_root_object
 
-  logging_config {
-    include_cookies = false
-    bucket          = var.logging_bucket_domain_name
-    prefix          = "cloudfront-logs/"
+  dynamic "logging_config" {
+    for_each = var.enable_access_logging && var.logging_bucket_domain_name != null ? [1] : []
+    content {
+      include_cookies = false
+      bucket          = var.logging_bucket_domain_name
+      prefix          = "cloudfront-logs/"
+    }
   }
 
   default_cache_behavior {

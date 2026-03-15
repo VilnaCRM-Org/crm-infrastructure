@@ -35,21 +35,21 @@ resource "aws_codepipeline" "terraform_pipeline" {
     for_each = var.stages
 
     content {
-      name = "Stage-${stage.value["name"]}"
+      name = "Stage-${stage.value.name}"
       action {
-        category         = stage.value["category"]
-        name             = "Action-${stage.value["name"]}"
-        owner            = stage.value["owner"]
-        provider         = stage.value["provider"]
-        input_artifacts  = [stage.value["input_artifacts"]]
-        output_artifacts = [stage.value["output_artifacts"]]
+        category         = stage.value.category
+        name             = "Action-${stage.value.name}"
+        owner            = stage.value.owner
+        provider         = stage.value.provider
+        input_artifacts  = stage.value.input_artifacts
+        output_artifacts = [stage.value.output_artifacts]
         version          = "1"
         run_order        = index(var.stages, stage.value) + 2
 
         configuration = {
-          CombineArtifacts = startswith(stage.value["name"], "batch") ? true : false
-          BatchEnabled     = startswith(stage.value["name"], "batch") ? true : false
-          ProjectName      = stage.value["provider"] == "CodeBuild" ? "${var.project_name}-${stage.value["name"]}" : null
+          CombineArtifacts = startswith(stage.value.name, "batch") ? true : false
+          BatchEnabled     = startswith(stage.value.name, "batch") ? true : false
+          ProjectName      = stage.value.provider == "CodeBuild" ? "${var.project_name}-${stage.value.name}" : null
         }
       }
     }

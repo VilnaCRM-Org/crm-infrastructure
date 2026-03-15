@@ -95,6 +95,7 @@ locals {
         "PYTHON_VERSION"                     = var.runtime_versions.python,
         "RUBY_VERSION"                       = var.runtime_versions.ruby,
         "SCRIPT_DIR"                         = var.script_dir,
+        "BUCKET_NAME"                        = var.bucket_name,
         "CI_CD_CRM_PIPELINE_NAME"            = "${var.ci_cd_crm_project_name}-pipeline",
         "CLOUDFRONT_REGION"                  = var.cloudfront_configuration.region,
         })
@@ -189,6 +190,7 @@ locals {
         "CLOUDFRONT_WEIGHT"         = var.continuous_deployment_policy_weight,
         "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
         "CLOUDFRONT_TYPE"           = var.continuous_deployment_policy_type,
+        "ENABLE_CLOUDFRONT_STAGING" = tostring(var.enable_cloudfront_staging),
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/deploy.yml" })

@@ -69,7 +69,8 @@ data "aws_iam_policy_document" "iam_policy_doc" {
       "arn:aws:iam::${local.account_id}:policy/sandbox-crm-${var.environment}-codepipeline-role-policy",
       "arn:aws:iam::${local.account_id}:policy/sandbox-crm-creation-trigger-role-policy",
       "arn:aws:iam::${local.account_id}:policy/sandbox-crm-deletion-trigger-role-policy",
-      "arn:aws:iam::${local.account_id}:policy/sandbox-crm-cleanup-function-policy"
+      "arn:aws:iam::${local.account_id}:policy/sandbox-crm-cleanup-function-policy",
+      "arn:aws:iam::${local.account_id}:policy/CodePipelinePolicies/${var.policy_prefix}-*"
     ]
   }
   statement {

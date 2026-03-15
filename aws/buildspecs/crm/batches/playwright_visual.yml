@@ -24,8 +24,9 @@ phases:
       - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh test-playwright-visual"
     finally:
       - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
+      - "printf 'playwright visual complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/playwright-visual.txt"
 
 artifacts:
   files:
-    - "crm/playwright-visual-reports/**/*"
-    - "crm/**/*"
+    - "codepipeline-artifacts/playwright-visual.txt"

@@ -48,6 +48,12 @@ variable "codestar_connection_arn" {
   type        = string
 }
 
+variable "cloudfront_distribution_ids" {
+  description = "CloudFront distribution IDs that shared infra is allowed to update"
+  type        = list(string)
+  default     = []
+}
+
 variable "policy_arns" {
   type        = map(map(string))
   description = "Set of policies to attach to Role"

@@ -25,7 +25,8 @@ module "crm_infra_codepipeline_iam_role" {
   region      = var.region
   environment = var.environment
 
-  crm_bucket_name = var.bucket_name
+  crm_bucket_name             = var.bucket_name
+  cloudfront_distribution_ids = var.cloudfront_distribution_ids
 
   s3_bucket_arn           = module.crm_infra_s3_artifacts_bucket.arn
   codestar_connection_arn = module.codestar_connection.arn

@@ -3,10 +3,11 @@ module "ci_cd_infra_policies" {
 
   policy_prefix = "${var.environment}-ci-cd-infra-crm"
 
-  project_name           = var.project_name
-  crm_project_name       = var.crm_infra_project_name
-  ci_cd_project_name     = var.ci_cd_infra_project_name
-  ci_cd_crm_project_name = var.ci_cd_crm_project_name
+  project_name                      = var.project_name
+  crm_project_name                  = var.crm_infra_project_name
+  ci_cd_project_name                = var.ci_cd_infra_project_name
+  ci_cd_crm_project_name            = var.ci_cd_crm_project_name
+  ci_cd_crm_codebuild_project_names = [for stage in var.ci_cd_crm_stage_input : stage.name if stage.provider == "CodeBuild"]
 
   region      = var.region
   environment = var.environment
