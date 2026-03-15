@@ -37,6 +37,10 @@ phases:
 
 artifacts:
   files:
+    - "Makefile"
+    - "aws/buildspecs/ci-cd-infrastructure-crm/**/*"
+    - "aws/scripts/**/*"
+    - "terraform/**/*"
     - "codepipeline-artifacts/validate.txt"
 
 reports:
