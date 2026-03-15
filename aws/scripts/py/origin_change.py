@@ -27,6 +27,9 @@ class CloudFrontOriginSwapper:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.region = self._get_region()
+        self.enable_cloudfront_staging = (
+            os.environ.get("ENABLE_CLOUDFRONT_STAGING", "true").lower() == "true"
+        )
 
     def _get_region(self) -> str:
         """Get CloudFront region from environment variable"""
@@ -128,6 +131,12 @@ class CloudFrontOriginSwapper:
 
         self.logger.info("Filtered to %d CRM app distributions", len(filtered_configs))
 
+        if len(filtered_configs) == 1:
+            self.logger.info(
+                "Found a single CRM app distribution, assuming staging is disabled"
+            )
+            return filtered_ids, filtered_configs
+
         if len(filtered_configs) != 2:
             raise CloudFrontOriginSwapError(
                 f"Expected exactly 2 CRM app distributions for origin swap, "
@@ -188,8 +197,19 @@ class CloudFrontOriginSwapper:
         self.logger.info("Starting CloudFront origin swap...")
 
         try:
+            if not self.enable_cloudfront_staging:
+                self.logger.info(
+                    "CloudFront staging is disabled, skipping origin swap"
+                )
+                return
+
             # Get filtered distributions
             distribution_ids, configs = self._filter_distributions()
+            if len(configs) < 2:
+                self.logger.info(
+                    "Skipping origin swap because only one CRM app distribution exists"
+                )
+                return
 
             # Swap origins
             updated_configs = self._swap_origins(configs)
