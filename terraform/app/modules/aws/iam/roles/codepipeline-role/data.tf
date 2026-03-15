@@ -144,6 +144,20 @@ data "aws_iam_policy_document" "terraform_ci_cd_policy_document" {
     ]
   }
 
+  statement {
+    sid    = "CodeBuildProjectManagementPolicy"
+    effect = "Allow"
+    actions = [
+      "codebuild:UpdateProject",
+    ]
+    resources = [
+      "arn:aws:codebuild:${data.aws_region.current.id}:${local.account_id}:project/ci-cd-infra-crm-${var.environment}-*",
+      "arn:aws:codebuild:${data.aws_region.current.id}:${local.account_id}:project/ci-cd-crm-${var.environment}-*",
+      "arn:aws:codebuild:${data.aws_region.current.id}:${local.account_id}:project/crm-infra-${var.environment}-*",
+      "arn:aws:codebuild:${data.aws_region.current.id}:${local.account_id}:project/sandbox-crm-${var.environment}-*",
+    ]
+  }
+
   dynamic "statement" {
     for_each = length(local.cloudfront_distribution_arns) > 0 ? [local.cloudfront_distribution_arns] : []
 
