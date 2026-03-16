@@ -11,6 +11,8 @@ else
     CRM_GIT_REPOSITORY_BRANCH="${CRM_GIT_REPOSITORY_BRANCH:-main}"
 fi
 
+echo "Cloning CRM repo branch: ${CRM_GIT_REPOSITORY_BRANCH}"
+
 git clone -b "$CRM_GIT_REPOSITORY_BRANCH" "$CRM_GIT_REPOSITORY_LINK.git" /codebuild-user/crm || {
     echo "Error: Failed to clone repository" >&2
     exit 1
