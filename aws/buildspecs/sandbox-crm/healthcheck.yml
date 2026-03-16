@@ -59,7 +59,7 @@ phases:
         if ! python3 "${CODEBUILD_SRC_DIR}/aws/scripts/py/healthcheck.py" \
           --url "$WEBSITE_URL" \
           --require-content-type \
-          --expect-body "VilnaCRM"; then
+          --expect-body "<div id=\"root\"></div>"; then
           echo "Health check failed for the website endpoint."
 
           if [ "${IS_PULL_REQUEST}" = "1" ]; then
