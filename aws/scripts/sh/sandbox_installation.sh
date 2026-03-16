@@ -5,7 +5,11 @@ echo #### Install Software
 : "${CRM_GIT_REPOSITORY_LINK:?Repository link is not set}"
 : "${BRANCH_NAME:?Branch name is not set}"
 
-CRM_GIT_REPOSITORY_BRANCH="${CRM_GIT_REPOSITORY_BRANCH:-main}"
+if [ "${IS_PULL_REQUEST:-0}" = "1" ]; then
+    CRM_GIT_REPOSITORY_BRANCH="$BRANCH_NAME"
+else
+    CRM_GIT_REPOSITORY_BRANCH="${CRM_GIT_REPOSITORY_BRANCH:-main}"
+fi
 
 git clone -b "$CRM_GIT_REPOSITORY_BRANCH" "$CRM_GIT_REPOSITORY_LINK.git" /codebuild-user/crm || {
     echo "Error: Failed to clone repository" >&2
