@@ -299,7 +299,6 @@ locals {
             "CI"                      = "1",
             "NODEJS_VERSION"          = var.runtime_versions.nodejs,
             "BUCKET_NAME"             = var.bucket_name,
-            "BRANCH_NAME"             = var.BRANCH_NAME,
             "CRM_GIT_REPOSITORY_LINK" = "https://github.com/${var.source_repo_owner}/${var.crm_content_repo_name}",
           }
         )
