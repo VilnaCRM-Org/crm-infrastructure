@@ -41,7 +41,10 @@ delete_cleanup_rule() {
     if [ -n "$target_ids" ] && [ "$target_ids" != "None" ]; then
         echo "Removing EventBridge targets from ${rule_name}..."
         # shellcheck disable=SC2086 # AWS CLI expects one argument per target id.
-        aws events remove-targets --rule "$rule_name" --ids $target_ids --region "${AWS_DEFAULT_REGION}" >/dev/null
+        if ! aws events remove-targets --rule "$rule_name" --ids $target_ids --region "${AWS_DEFAULT_REGION}" >/dev/null; then
+            echo "Error: Failed to remove cleanup targets from ${rule_name}."
+            return 1
+        fi
     fi
 
     echo "Deleting EventBridge cleanup rule ${rule_name}..."
