@@ -38,8 +38,3 @@ variable "codestar_connection_arn" {
   description = "CodeStar connection ARN"
   type        = string
 }
-
-variable "BRANCH_NAME" {
-  description = "Name of the branch"
-  type        = string
-}
