@@ -21,6 +21,8 @@ sanitize_legacy_branch_name() {
     printf '%s' "$sanitized_branch" | cut -c 1-47
 }
 
+# Legacy variant: some older buckets stripped unsupported characters instead of
+# replacing them with dashes, so this path must stay aligned with that history.
 sanitize_stripped_legacy_branch_name() {
     stripped_branch=$(printf '%s' "$1" \
         | tr '[:upper:]' '[:lower:]' \
