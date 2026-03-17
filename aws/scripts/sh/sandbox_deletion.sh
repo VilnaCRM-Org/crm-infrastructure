@@ -43,7 +43,10 @@ delete_cleanup_rule() {
     fi
 
     echo "Deleting EventBridge cleanup rule ${rule_name}..."
-    aws events delete-rule --name "$rule_name" --region "${AWS_DEFAULT_REGION}"
+    if ! aws events delete-rule --name "$rule_name" --region "${AWS_DEFAULT_REGION}"; then
+        echo "Error: Failed to delete cleanup rule ${rule_name}."
+        return 1
+    fi
 }
 
 delete_bucket() {
@@ -56,7 +59,10 @@ delete_bucket() {
     fi
 
     echo "Bucket ${bucket_name} exists. Proceeding with deletion..."
-    delete_cleanup_rule "${bucket_name}"
+    if ! delete_cleanup_rule "${bucket_name}"; then
+        echo "Error deleting cleanup rule for bucket ${bucket_name}."
+        return 1
+    fi
 
     if aws s3 rm "s3://${bucket_name}" --recursive --region "${AWS_DEFAULT_REGION}"; then
         echo "All objects were successfully removed from bucket ${bucket_name}."
