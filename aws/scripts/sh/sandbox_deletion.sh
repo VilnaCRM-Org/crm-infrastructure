@@ -9,6 +9,8 @@ if [ -z "${PROJECT_NAME:-}" ] || [ -z "${BRANCH_NAME:-}" ] || [ -z "${AWS_DEFAUL
 fi
 
 sanitize_legacy_branch_name() {
+    # Legacy sandbox buckets predate the hashed branch slug and stripped unsupported
+    # characters entirely, so deletion must keep matching that older naming scheme.
     sanitized_branch=$(printf '%s' "$1" \
         | tr '[:upper:]' '[:lower:]' \
         | sed 's/[^a-z0-9.-]//g' \
