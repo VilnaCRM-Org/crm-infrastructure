@@ -9,11 +9,9 @@ if [ -z "${PROJECT_NAME:-}" ] || [ -z "${BRANCH_NAME:-}" ] || [ -z "${AWS_DEFAUL
 fi
 
 sanitize_legacy_branch_name() {
-    # Legacy sandbox buckets predate the hashed branch slug and stripped unsupported
-    # characters entirely, so deletion must keep matching that older naming scheme.
     sanitized_branch=$(printf '%s' "$1" \
         | tr '[:upper:]' '[:lower:]' \
-        | sed 's/[^a-z0-9.-]//g' \
+        | sed 's/[^a-z0-9][^a-z0-9]*/-/g' \
         | sed 's/^[.-]*//' | sed 's/[.-]*$//')
 
     if [ -z "$sanitized_branch" ]; then
@@ -21,6 +19,19 @@ sanitize_legacy_branch_name() {
     fi
 
     printf '%s' "$sanitized_branch" | cut -c 1-47
+}
+
+sanitize_stripped_legacy_branch_name() {
+    stripped_branch=$(printf '%s' "$1" \
+        | tr '[:upper:]' '[:lower:]' \
+        | sed 's/[^a-z0-9.-]//g' \
+        | sed 's/^[.-]*//' | sed 's/[.-]*$//')
+
+    if [ -z "$stripped_branch" ]; then
+        stripped_branch="branch"
+    fi
+
+    printf '%s' "$stripped_branch" | cut -c 1-47
 }
 
 delete_cleanup_rule() {
@@ -92,8 +103,10 @@ delete_bucket() {
 }
 
 legacy_branch_name=$(sanitize_legacy_branch_name "${RAW_BRANCH_NAME:-$BRANCH_NAME}")
+stripped_legacy_branch_name=$(sanitize_stripped_legacy_branch_name "${RAW_BRANCH_NAME:-$BRANCH_NAME}")
 current_bucket_name="${PROJECT_NAME}-${BRANCH_NAME}"
 legacy_bucket_name="${PROJECT_NAME}-${legacy_branch_name}"
+stripped_legacy_bucket_name="${PROJECT_NAME}-${stripped_legacy_branch_name}"
 deleted_any_bucket=0
 
 if delete_bucket "${current_bucket_name}"; then
@@ -101,6 +114,12 @@ if delete_bucket "${current_bucket_name}"; then
 fi
 
 if [ "${legacy_bucket_name}" != "${current_bucket_name}" ] && delete_bucket "${legacy_bucket_name}"; then
+    deleted_any_bucket=1
+fi
+
+if [ "${stripped_legacy_bucket_name}" != "${current_bucket_name}" ] \
+    && [ "${stripped_legacy_bucket_name}" != "${legacy_bucket_name}" ] \
+    && delete_bucket "${stripped_legacy_bucket_name}"; then
     deleted_any_bucket=1
 fi
 
