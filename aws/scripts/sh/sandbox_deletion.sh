@@ -12,7 +12,7 @@ sanitize_legacy_branch_name() {
     sanitized_branch=$(printf '%s' "$1" \
         | tr '[:upper:]' '[:lower:]' \
         | sed 's/[^a-z0-9.-]//g' \
-        | sed -E 's/^[.-]+|[.-]+$//g')
+        | sed 's/^[.-]*//' | sed 's/[.-]*$//')
 
     if [ -z "$sanitized_branch" ]; then
         sanitized_branch="branch"
