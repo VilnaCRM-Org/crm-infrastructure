@@ -296,6 +296,8 @@ locals {
         env_variables = merge(
           local.common_sandbox_env_variables,
           {
+            # CodePipeline overrides BRANCH_NAME per execution; this project-level default stays inert.
+            "BRANCH_NAME"             = var.BRANCH_NAME,
             "CI"                      = "1",
             "NODEJS_VERSION"          = var.runtime_versions.nodejs,
             "BUCKET_NAME"             = var.bucket_name,
