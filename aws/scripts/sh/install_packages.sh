@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # Package Installation Script
-# Installs required system packages using apk
+# POSIX bootstrap: the Alpine DinD image does not include Bash yet.
 
 set -e
 
