@@ -65,6 +65,57 @@ class CrmStackOwnershipTests(unittest.TestCase):
             self.assertIn(f"make terraspace-ci-cd-infra-{target}", spec)
 
     def test_test_and_production_content_stage_artifacts(self):
+        expected_stages = [
+            (
+                "batch-unit-mutation-lint",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "UnitMutationLintOutput",
+                ["SourceOutput", "CrmSource"],
+            ),
+            (
+                "deploy",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "DeployOutput",
+                ["SourceOutput", "CrmSource"],
+            ),
+            (
+                "healthcheck",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "HealthcheckOutput",
+                ["SourceOutput", "CrmSource", "DeployOutput"],
+            ),
+            (
+                "batch-lhci-leak",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "LHCILeakOutput",
+                ["SourceOutput", "CrmSource"],
+            ),
+            (
+                "batch-pw-load",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "PWLoadOutput",
+                ["SourceOutput", "CrmSource"],
+            ),
+            (
+                "release",
+                "Build",
+                "AWS",
+                "CodeBuild",
+                "ReleaseOutput",
+                ["SourceOutput", "CrmSource", "DeployOutput"],
+            ),
+        ]
+
         for environment in ("test", "prod"):
             config = (
                 ROOT
@@ -75,22 +126,27 @@ class CrmStackOwnershipTests(unittest.TestCase):
                 r"ci_cd_crm_stage_input\s*=\s*\[(.*?)\n\]", config, re.DOTALL
             ).group(1)
             actions = re.findall(
-                r'name\s*=\s*"([^"]+)"[^\n]*?' r"input_artifacts\s*=\s*\[([^\]]+)\]",
+                r'\{\s*name\s*=\s*"([^"]+)",\s*'
+                r'category\s*=\s*"([^"]+)",\s*'
+                r'owner\s*=\s*"([^"]+)",\s*'
+                r'provider\s*=\s*"([^"]+)",\s*'
+                r'input_artifacts\s*=\s*\[([^\]]+)\],\s*'
+                r'output_artifacts\s*=\s*"([^"]+)"\s*\}',
                 stages,
             )
-            names = {name for name, _ in actions}
-            self.assertTrue({"deploy", "healthcheck", "release"} <= names)
-            if environment == "prod":
-                self.assertTrue(
-                    {"batch-unit-mutation-lint", "batch-lhci-leak", "batch-pw-load"}
-                    <= names
+            actual_stages = [
+                (
+                    name,
+                    category,
+                    owner,
+                    provider,
+                    output,
+                    re.findall(r'"([^"]+)"', inputs),
                 )
-            for name, inputs in actions:
-                with self.subTest(environment=environment, stage=name):
-                    expected = ["SourceOutput", "CrmSource"]
-                    if name in ("healthcheck", "release"):
-                        expected.append("DeployOutput")
-                    self.assertEqual(re.findall(r'"([^"]+)"', inputs), expected)
+                for name, category, owner, provider, inputs, output in actions
+            ]
+            with self.subTest(environment=environment):
+                self.assertEqual(actual_stages, expected_stages)
 
     def test_infrastructure_and_content_are_queued_v2(self):
         for module in ("infrastructure", "crm"):

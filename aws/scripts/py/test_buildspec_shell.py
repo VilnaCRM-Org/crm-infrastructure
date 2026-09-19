@@ -60,7 +60,7 @@ def load_buildspec(name, batch=True):
 
 
 class BuildspecShellTests(unittest.TestCase):
-    def test_only_unit_child_gets_medium_compute_without_weakening_gates(self):
+    def test_memory_intensive_children_are_sized_without_weakening_gates(self):
         batch = load_buildspec("batch_unit_mutation_integration_lint", batch=False)[
             "batch"
         ]
@@ -76,7 +76,10 @@ class BuildspecShellTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     child.get("env", {}),
-                    {"compute-type": "BUILD_GENERAL1_MEDIUM"} if name == "unit" else {},
+                    {
+                        "unit": {"compute-type": "BUILD_GENERAL1_MEDIUM"},
+                        "mutation": {"compute-type": "BUILD_GENERAL1_LARGE"},
+                    }.get(name, {}),
                 )
 
     def assert_bash_heredoc(self, command):

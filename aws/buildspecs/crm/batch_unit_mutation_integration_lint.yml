@@ -3,12 +3,16 @@ batch:
   build-list:
     - identifier: mutation
       buildspec: "./aws/buildspecs/crm/batches/mutation.yml"
+      # Stryker may run two 4 GiB-heap workers after the checker finishes.
+      # Keep headroom for native allocations, the coordinator and Docker.
+      env:
+        compute-type: BUILD_GENERAL1_LARGE
       ignore-failure: false
 
     - identifier: unit
       buildspec: "./aws/buildspecs/crm/batches/unit.yml"
       # Full coverage with two Jest workers exceeded the Small runner in TEST.
-      # Size only this child; other quality jobs retain their project defaults.
+      # Lint and integration retain their project defaults.
       env:
         compute-type: BUILD_GENERAL1_MEDIUM
       ignore-failure: false
