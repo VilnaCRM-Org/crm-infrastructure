@@ -1,7 +1,8 @@
 version: 0.2
 
 env:
-  shell: bash
+  # The Alpine DinD image has sh only until install_packages.sh installs Bash.
+  shell: /bin/sh
   variables:
     ACCOUNT_ID: $ACCOUNT_ID
     ENVIRONMENT: $ENVIRONMENT
@@ -13,18 +14,29 @@ env:
 phases:
   install:
     commands:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
+      - '/bin/sh "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"'
+      - |
+        bash -e <<'BASH'
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
+        BASH
 
   build:
     commands:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo 'Running Playwright Visual tests with new batch script'"
-      - "cd ${CODEBUILD_SRC_DIR}/crm"
-      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh test-playwright-visual"
+      - |
+        bash -e <<'BASH'
+        cd "${CODEBUILD_SRC_DIR}/crm"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
+        echo "Running Playwright Visual checks"
+        . "${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh" test-playwright-visual
+        BASH
     finally:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - |
+        bash -e <<'BASH'
+        cd "${CODEBUILD_SRC_DIR}/crm"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+        BASH
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'playwright visual complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/playwright-visual.txt"
 
