@@ -130,7 +130,7 @@ class CrmStackOwnershipTests(unittest.TestCase):
                 r'category\s*=\s*"([^"]+)",\s*'
                 r'owner\s*=\s*"([^"]+)",\s*'
                 r'provider\s*=\s*"([^"]+)",\s*'
-                r'input_artifacts\s*=\s*\[([^\]]+)\],\s*'
+                r"input_artifacts\s*=\s*\[([^\]]+)\],\s*"
                 r'output_artifacts\s*=\s*"([^"]+)"\s*\}',
                 stages,
             )
