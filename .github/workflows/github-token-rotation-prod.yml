@@ -14,7 +14,7 @@ env:
 jobs:
   rotate-github-token:
     concurrency:
-      group: github-token-rotation
+      group: github-token-rotation-prod
       cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15

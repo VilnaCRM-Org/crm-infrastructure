@@ -60,10 +60,10 @@ if ! SECRET_JSON=$(jq -n --arg token "$NEW_TOKEN" --arg expires_at "$TOKEN_EXPIR
   exit 1
 fi
 
-# Search for an active secret
+# Select the same newest active secret as retrieve_token.sh.
 SECRET_ID=$(aws secretsmanager list-secrets \
   --region "${AWS_REGION}" \
-  --query "SecretList[?starts_with(Name, 'crm-github-token-') && DeletionDate==null].Name | [0]" \
+  --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" \
   --output text)
 
 if [ -z "$SECRET_ID" ] || [ "$SECRET_ID" = "None" ]; then
