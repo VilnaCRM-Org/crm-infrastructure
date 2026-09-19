@@ -7,6 +7,10 @@ batch:
 
     - identifier: unit
       buildspec: "./aws/buildspecs/crm/batches/unit.yml"
+      # Full coverage with two Jest workers exceeded the Small runner in TEST.
+      # Size only this child; other quality jobs retain their project defaults.
+      env:
+        compute-type: BUILD_GENERAL1_MEDIUM
       ignore-failure: false
 
     - identifier: lint

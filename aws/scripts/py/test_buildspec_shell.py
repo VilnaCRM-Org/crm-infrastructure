@@ -60,6 +60,25 @@ def load_buildspec(name, batch=True):
 
 
 class BuildspecShellTests(unittest.TestCase):
+    def test_only_unit_child_gets_medium_compute_without_weakening_gates(self):
+        batch = load_buildspec("batch_unit_mutation_integration_lint", batch=False)[
+            "batch"
+        ]
+        self.assertFalse(batch["fast-fail"])
+        self.assertEqual(len(batch["build-list"]), 4)
+        children = {child["identifier"]: child for child in batch["build-list"]}
+        self.assertEqual(set(children), {"unit", "mutation", "integration", "lint"})
+        for name, child in children.items():
+            with self.subTest(child=name):
+                self.assertFalse(child["ignore-failure"])
+                self.assertEqual(
+                    child["buildspec"], f"./aws/buildspecs/crm/batches/{name}.yml"
+                )
+                self.assertEqual(
+                    child.get("env", {}),
+                    {"compute-type": "BUILD_GENERAL1_MEDIUM"} if name == "unit" else {},
+                )
+
     def assert_bash_heredoc(self, command):
         self.assertTrue(command.startswith("bash -e <<'BASH'\n"), command)
         self.assertEqual(command.rstrip().splitlines()[-1], "BASH")
