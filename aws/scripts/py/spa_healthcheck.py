@@ -46,12 +46,21 @@ class ShellParser(HTMLParser):
             self.root_count += 1
         if tag == "script":
             if attrs.get("id") == "app-runtime-config":
-                if attrs.get("type", "").lower() != "application/json" or self.runtime_config is not None:
-                    raise ValueError("Expected one application/json #app-runtime-config block")
+                if (
+                    attrs.get("type", "").lower() != "application/json"
+                    or self.runtime_config is not None
+                ):
+                    raise ValueError(
+                        "Expected one application/json #app-runtime-config block"
+                    )
                 self._runtime_depth = 1
             elif attrs.get("src"):
                 self.script_assets.append(attrs["src"])
-        if tag == "link" and "stylesheet" in attrs.get("rel", "").lower().split() and attrs.get("href"):
+        if (
+            tag == "link"
+            and "stylesheet" in attrs.get("rel", "").lower().split()
+            and attrs.get("href")
+        ):
             self.css_assets.append(attrs["href"])
 
     def handle_endtag(self, tag):
@@ -113,7 +122,11 @@ def validate_runtime_config(parser):
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             fail(f"Runtime {key} must be an absolute HTTP(S) URL")
         host = parsed.hostname.lower().rstrip(".")
-        if host in PLACEHOLDER_HOSTS or host.startswith("yourserver") or "placeholder" in host:
+        if (
+            host in PLACEHOLDER_HOSTS
+            or host.startswith("yourserver")
+            or "placeholder" in host
+        ):
             fail(f"Runtime {key} uses placeholder host {host!r}")
         if host not in LOCAL_HOSTS and parsed.scheme != "https":
             fail(f"Runtime {key} must use HTTPS outside localhost")
@@ -133,8 +146,13 @@ def validate_manifest(path, shell, env):
         fail("Deployment manifest index_sha256 does not match served index.html")
     source_version = env.get("CRM_SOURCE_VERSION")
     if source_version and manifest.get("crm_source_revision") != source_version:
-        fail("Deployment manifest crm_source_revision does not match CRM_SOURCE_VERSION")
-    if not isinstance(manifest.get("crm_source_revision"), str) or not manifest["crm_source_revision"]:
+        fail(
+            "Deployment manifest crm_source_revision does not match CRM_SOURCE_VERSION"
+        )
+    if (
+        not isinstance(manifest.get("crm_source_revision"), str)
+        or not manifest["crm_source_revision"]
+    ):
         fail("Deployment manifest is missing crm_source_revision")
 
 
@@ -155,7 +173,9 @@ def check(url, staging=False, manifest=None, timeout=20, env=None):
 
     shells = []
     for route in ROUTES:
-        status, response_headers, body = request(urljoin(base_url + "/", route.lstrip("/")), timeout, headers)
+        status, response_headers, body = request(
+            urljoin(base_url + "/", route.lstrip("/")), timeout, headers
+        )
         if status != 200:
             fail(f"{route} returned HTTP {status}, expected 200")
         if "text/html" not in response_headers.get("Content-Type", "").lower():
@@ -190,24 +210,38 @@ def check(url, staging=False, manifest=None, timeout=20, env=None):
         status, asset_headers, body = request(asset_url, timeout, headers)
         if status != 200:
             fail(f"{kind} asset {asset_path} returned HTTP {status}, expected 200")
-        content_type = asset_headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        content_type = (
+            asset_headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        )
         if content_type not in expected_types:
-            fail(f"{kind} asset {asset_path} has incorrect Content-Type {content_type!r}")
+            fail(
+                f"{kind} asset {asset_path} has incorrect Content-Type {content_type!r}"
+            )
         if b"<!doctype html" in body[:512].lower() or b"<html" in body[:512].lower():
             fail(f"{kind} asset {asset_path} returned HTML content")
 
     missing_url = urljoin(base_url + "/", MISSING_ASSET_PATH.lstrip("/"))
-    missing_status, _missing_headers, _missing_body = request(missing_url, timeout, headers)
+    missing_status, _missing_headers, _missing_body = request(
+        missing_url, timeout, headers
+    )
     if missing_status not in {403, 404}:
         fail(f"Missing-asset probe returned HTTP {missing_status}, expected 403 or 404")
     return True
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Check VilnaCRM SPA deployment delivery")
+    parser = argparse.ArgumentParser(
+        description="Check VilnaCRM SPA deployment delivery"
+    )
     parser.add_argument("--url", required=True, help="CRM site base URL")
-    parser.add_argument("--staging", action="store_true", help="Use CloudFront continuous-deployment header")
-    parser.add_argument("--deployment-manifest", help="Deployment manifest emitted by deploy_content.py")
+    parser.add_argument(
+        "--staging",
+        action="store_true",
+        help="Use CloudFront continuous-deployment header",
+    )
+    parser.add_argument(
+        "--deployment-manifest", help="Deployment manifest emitted by deploy_content.py"
+    )
     parser.add_argument("--timeout", type=float, default=20)
     args = parser.parse_args(argv)
     try:

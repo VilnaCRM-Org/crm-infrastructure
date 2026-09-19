@@ -28,8 +28,14 @@ def distribution(identifier, bucket, staging=False):
         "Aliases": {"Items": [] if staging else [bucket]},
         "Origins": {
             "Items": [
-                {"Id": "origin", "DomainName": f"{bucket}.s3.eu-central-1.amazonaws.com"},
-                {"Id": "replication", "DomainName": f"{replication_bucket}.s3.eu-west-1.amazonaws.com"},
+                {
+                    "Id": "origin",
+                    "DomainName": f"{bucket}.s3.eu-central-1.amazonaws.com",
+                },
+                {
+                    "Id": "replication",
+                    "DomainName": f"{replication_bucket}.s3.eu-west-1.amazonaws.com",
+                },
             ]
         },
     }
@@ -41,24 +47,33 @@ class BlueGreenTests(unittest.TestCase):
             pair = distribution("pair", base)["Origins"]["Items"]
             self.assertEqual(deploy_content.origin_pair_role(pair, BUCKET), role)
         incomplete = distribution("pair", BUCKET)["Origins"]["Items"][:1]
-        mixed = distribution("pair", BUCKET)["Origins"]["Items"] + distribution(
-            "other", f"staging.{BUCKET}", True
-        )["Origins"]["Items"][:1]
+        mixed = (
+            distribution("pair", BUCKET)["Origins"]["Items"]
+            + distribution("other", f"staging.{BUCKET}", True)["Origins"]["Items"][:1]
+        )
         self.assertIsNone(deploy_content.origin_pair_role(incomplete, BUCKET))
         self.assertIsNone(deploy_content.origin_pair_role(mixed, BUCKET))
         wrong_region = distribution("wrong-region", BUCKET)["Origins"]["Items"]
-        wrong_region[1]["DomainName"] = f"{BUCKET}-replication.s3.eu-central-1.amazonaws.com"
+        wrong_region[1][
+            "DomainName"
+        ] = f"{BUCKET}-replication.s3.eu-central-1.amazonaws.com"
         self.assertIsNone(deploy_content.origin_pair_role(wrong_region, BUCKET))
 
     def test_staging_disabled_defaults_to_direct_primary_upload(self):
-        with patch.dict(os.environ, {"ENABLE_CLOUDFRONT_STAGING": "false"}, clear=False), patch.object(
-            deploy_content, "find_project_distributions", side_effect=AssertionError("AWS lookup should be skipped")
+        with patch.dict(
+            os.environ, {"ENABLE_CLOUDFRONT_STAGING": "false"}, clear=False
+        ), patch.object(
+            deploy_content,
+            "find_project_distributions",
+            side_effect=AssertionError("AWS lookup should be skipped"),
         ):
             self.assertEqual(deploy_content.determine_deployment_target(BUCKET), BUCKET)
 
     def test_staging_disabled_policy_switch_is_noop(self):
         with patch.object(policy, "ENABLE_CLOUDFRONT_STAGING", False), patch.object(
-            policy.subprocess, "check_output", side_effect=AssertionError("AWS call should be skipped")
+            policy.subprocess,
+            "check_output",
+            side_effect=AssertionError("AWS call should be skipped"),
         ):
             policy.main()
 
@@ -69,7 +84,9 @@ class BlueGreenTests(unittest.TestCase):
             distribution("staging", f"staging.{BUCKET}", True),
         ]
         with patch.object(
-            deploy_content, "fetch_distributions", return_value={"DistributionList": {"Items": items}}
+            deploy_content,
+            "fetch_distributions",
+            return_value={"DistributionList": {"Items": items}},
         ):
             result = deploy_content.find_project_distributions(BUCKET)
         self.assertEqual(result["production"]["Id"], "primary")
@@ -77,7 +94,9 @@ class BlueGreenTests(unittest.TestCase):
 
         items.append(distribution("second-primary", BUCKET))
         with patch.object(
-            deploy_content, "fetch_distributions", return_value={"DistributionList": {"Items": items}}
+            deploy_content,
+            "fetch_distributions",
+            return_value={"DistributionList": {"Items": items}},
         ), self.assertRaises(ValueError):
             deploy_content.find_project_distributions(BUCKET)
 
@@ -102,21 +121,29 @@ class BlueGreenTests(unittest.TestCase):
             production = distribution("primary", active_family)
             inactive_family = f"staging.{BUCKET}" if active_family == BUCKET else BUCKET
             staging = distribution("staging", inactive_family, True)
-            with patch.dict(os.environ, {"ENABLE_CLOUDFRONT_STAGING": "true"}), patch.object(
+            with patch.dict(
+                os.environ, {"ENABLE_CLOUDFRONT_STAGING": "true"}
+            ), patch.object(
                 deploy_content,
                 "find_project_distributions",
                 return_value={"production": production, "staging": staging},
             ):
-                self.assertEqual(deploy_content.determine_deployment_target(BUCKET), expected)
+                self.assertEqual(
+                    deploy_content.determine_deployment_target(BUCKET), expected
+                )
 
     def test_deployment_target_rejects_same_pair_partial_promotion_before_upload(self):
         both_primary = {
             "production": distribution("primary", BUCKET),
             "staging": distribution("staging", BUCKET, True),
         }
-        with patch.dict(os.environ, {"BUCKET_NAME": BUCKET, "ENABLE_CLOUDFRONT_STAGING": "true"}), patch.object(
+        with patch.dict(
+            os.environ, {"BUCKET_NAME": BUCKET, "ENABLE_CLOUDFRONT_STAGING": "true"}
+        ), patch.object(
             deploy_content, "find_project_distributions", return_value=both_primary
-        ), patch.object(deploy_content, "deploy_files") as upload:
+        ), patch.object(
+            deploy_content, "deploy_files"
+        ) as upload:
             with self.assertRaisesRegex(ValueError, "opposite exact CRM"):
                 deploy_content.main()
         upload.assert_not_called()
@@ -160,14 +187,19 @@ class BlueGreenTests(unittest.TestCase):
                 deploy_content,
                 "find_project_distributions",
                 return_value={"production": primary, "staging": staging},
-            ), patch.object(deploy_content, "deploy_files"):
+            ), patch.object(
+                deploy_content, "deploy_files"
+            ):
                 deploy_content.main()
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["target_bucket"], f"staging.{BUCKET}")
         self.assertEqual(manifest["origins"]["primary"], staging["Origins"])
         self.assertEqual(manifest["origins"]["staging"], primary["Origins"])
         self.assertEqual(manifest["crm_source_revision"], "crm-revision-123")
-        self.assertEqual(manifest["index_sha256"], "b4ed9632452fd12fd6297fbb3b74808b35f3b4e5a833df459e49ad16d08a41aa")
+        self.assertEqual(
+            manifest["index_sha256"],
+            "b4ed9632452fd12fd6297fbb3b74808b35f3b4e5a833df459e49ad16d08a41aa",
+        )
 
     def test_direct_mode_still_emits_healthcheck_manifest_with_real_crm_revision(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -176,38 +208,64 @@ class BlueGreenTests(unittest.TestCase):
             manifest_path = root / "manifest.json"
             with patch.dict(
                 os.environ,
-                {"BUCKET_NAME": BUCKET, "ENABLE_CLOUDFRONT_STAGING": "false", "CRM_SOURCE_VERSION": "crm-direct-rev"},
+                {
+                    "BUCKET_NAME": BUCKET,
+                    "ENABLE_CLOUDFRONT_STAGING": "false",
+                    "CRM_SOURCE_VERSION": "crm-direct-rev",
+                },
             ), patch.object(deploy_content, "BUILD_DIR", temp_dir), patch.object(
                 deploy_content, "DEPLOYMENT_MANIFEST", str(manifest_path)
             ), patch.object(
-                deploy_content, "find_project_distributions", side_effect=AssertionError("direct mode must not inspect CloudFront")
-            ), patch.object(deploy_content, "deploy_files"):
+                deploy_content,
+                "find_project_distributions",
+                side_effect=AssertionError("direct mode must not inspect CloudFront"),
+            ), patch.object(
+                deploy_content, "deploy_files"
+            ):
                 deploy_content.main()
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertEqual(manifest["target_bucket"], BUCKET)
         self.assertEqual(manifest["crm_source_revision"], "crm-direct-rev")
-        self.assertEqual(manifest["index_sha256"], hashlib.sha256(b"direct-shell").hexdigest())
+        self.assertEqual(
+            manifest["index_sha256"], hashlib.sha256(b"direct-shell").hexdigest()
+        )
         self.assertNotIn("origins", manifest)
 
         with patch.dict(
             os.environ,
-            {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1", "ENABLE_CLOUDFRONT_STAGING": "false"},
+            {
+                "BUCKET_NAME": BUCKET,
+                "CLOUDFRONT_REGION": "us-east-1",
+                "ENABLE_CLOUDFRONT_STAGING": "false",
+            },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
-            with patch.object(swapper, "_filter_distributions", side_effect=AssertionError("direct release must not inspect CloudFront")), patch.object(
-                swapper, "_update_distribution"
-            ) as update:
+            with patch.object(
+                swapper,
+                "_filter_distributions",
+                side_effect=AssertionError(
+                    "direct release must not inspect CloudFront"
+                ),
+            ), patch.object(swapper, "_update_distribution") as update:
                 swapper.execute_origin_swap(manifest)
         update.assert_not_called()
 
     def test_direct_mode_rejects_incomplete_healthcheck_manifest(self):
         with patch.dict(
             os.environ,
-            {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1", "ENABLE_CLOUDFRONT_STAGING": "false"},
+            {
+                "BUCKET_NAME": BUCKET,
+                "CLOUDFRONT_REGION": "us-east-1",
+                "ENABLE_CLOUDFRONT_STAGING": "false",
+            },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
-            with self.assertRaisesRegex(origin_change.CloudFrontOriginSwapError, "index_sha256"):
-                swapper.execute_origin_swap({"target_bucket": BUCKET, "crm_source_revision": "rev"})
+            with self.assertRaisesRegex(
+                origin_change.CloudFrontOriginSwapError, "index_sha256"
+            ):
+                swapper.execute_origin_swap(
+                    {"target_bucket": BUCKET, "crm_source_revision": "rev"}
+                )
 
     def test_manifest_generation_requires_crm_revision(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -238,12 +296,20 @@ class BlueGreenTests(unittest.TestCase):
         ]
         with patch.dict(
             os.environ,
-            {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1", "ENABLE_CLOUDFRONT_STAGING": "true"},
+            {
+                "BUCKET_NAME": BUCKET,
+                "CLOUDFRONT_REGION": "us-east-1",
+                "ENABLE_CLOUDFRONT_STAGING": "true",
+            },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
-            with patch.object(swapper, "_filter_distributions", return_value=(["primary", "staging"], configs)), patch.object(
-                swapper, "_update_distribution"
-            ) as update, patch.object(origin_change.subprocess, "check_call") as wait:
+            with patch.object(
+                swapper,
+                "_filter_distributions",
+                return_value=(["primary", "staging"], configs),
+            ), patch.object(swapper, "_update_distribution") as update, patch.object(
+                origin_change.subprocess, "check_call"
+            ) as wait:
                 swapper.execute_origin_swap(manifest)
         self.assertEqual([call.args[0] for call in update.call_args_list], ["primary"])
         self.assertEqual(wait.call_count, 2)
@@ -252,12 +318,20 @@ class BlueGreenTests(unittest.TestCase):
         configs[1]["DistributionConfig"]["Origins"] = green
         with patch.dict(
             os.environ,
-            {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1", "ENABLE_CLOUDFRONT_STAGING": "true"},
+            {
+                "BUCKET_NAME": BUCKET,
+                "CLOUDFRONT_REGION": "us-east-1",
+                "ENABLE_CLOUDFRONT_STAGING": "true",
+            },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
-            with patch.object(swapper, "_filter_distributions", return_value=(["primary", "staging"], configs)), patch.object(
-                swapper, "_update_distribution"
-            ) as update, patch.object(origin_change.subprocess, "check_call"):
+            with patch.object(
+                swapper,
+                "_filter_distributions",
+                return_value=(["primary", "staging"], configs),
+            ), patch.object(swapper, "_update_distribution") as update, patch.object(
+                origin_change.subprocess, "check_call"
+            ):
                 swapper.execute_origin_swap(manifest)
         self.assertEqual([call.args[0] for call in update.call_args_list], ["staging"])
 
@@ -269,14 +343,20 @@ class BlueGreenTests(unittest.TestCase):
             "staging": {"ETag": "s", "DistributionConfig": staging},
             "primary": {"ETag": "p", "DistributionConfig": primary},
         }
-        with patch.dict(os.environ, {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1"}):
+        with patch.dict(
+            os.environ, {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1"}
+        ):
             swapper = origin_change.CloudFrontOriginSwapper()
             swapper._distribution_metadata = {
                 "staging": {"Staging": True},
                 "primary": {"Staging": False},
             }
-            with patch.object(swapper, "_fetch_distribution_ids", return_value=["staging", "primary"]), patch.object(
-                swapper, "_fetch_distribution_config", side_effect=lambda identifier: configs[identifier]
+            with patch.object(
+                swapper, "_fetch_distribution_ids", return_value=["staging", "primary"]
+            ), patch.object(
+                swapper,
+                "_fetch_distribution_config",
+                side_effect=lambda identifier: configs[identifier],
             ):
                 identifiers, ordered_configs = swapper._filter_distributions()
         self.assertEqual(identifiers, ["primary", "staging"])
@@ -285,7 +365,11 @@ class BlueGreenTests(unittest.TestCase):
     def test_origin_promotion_fails_closed_without_manifest(self):
         with patch.dict(
             os.environ,
-            {"BUCKET_NAME": BUCKET, "CLOUDFRONT_REGION": "us-east-1", "ENABLE_CLOUDFRONT_STAGING": "true"},
+            {
+                "BUCKET_NAME": BUCKET,
+                "CLOUDFRONT_REGION": "us-east-1",
+                "ENABLE_CLOUDFRONT_STAGING": "true",
+            },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
             with self.assertRaises(origin_change.CloudFrontOriginSwapError):
@@ -293,8 +377,14 @@ class BlueGreenTests(unittest.TestCase):
 
     def test_explicit_rollback_retains_legacy_origin_swap(self):
         configs = [
-            {"ETag": "etag", "DistributionConfig": {"Origins": {"Items": [{"DomainName": "blue"}]}}},
-            {"ETag": "etag", "DistributionConfig": {"Origins": {"Items": [{"DomainName": "green"}]}}},
+            {
+                "ETag": "etag",
+                "DistributionConfig": {"Origins": {"Items": [{"DomainName": "blue"}]}},
+            },
+            {
+                "ETag": "etag",
+                "DistributionConfig": {"Origins": {"Items": [{"DomainName": "green"}]}},
+            },
         ]
         with patch.dict(
             os.environ,
@@ -306,9 +396,13 @@ class BlueGreenTests(unittest.TestCase):
             },
         ):
             swapper = origin_change.CloudFrontOriginSwapper()
-            with patch.object(swapper, "_filter_distributions", return_value=(["primary", "staging"], configs)), patch.object(
-                swapper, "_update_distribution"
-            ) as update, patch.object(origin_change.subprocess, "check_call") as wait:
+            with patch.object(
+                swapper,
+                "_filter_distributions",
+                return_value=(["primary", "staging"], configs),
+            ), patch.object(swapper, "_update_distribution") as update, patch.object(
+                origin_change.subprocess, "check_call"
+            ) as wait:
                 swapper.execute_origin_swap()
         self.assertEqual(update.call_count, 2)
         self.assertEqual(wait.call_count, 2)
@@ -317,14 +411,19 @@ class BlueGreenTests(unittest.TestCase):
         invalidator = cache_invalidation.CloudFrontCacheInvalidator()
         with patch.dict(os.environ, {"BUCKET_NAME": BUCKET}):
             self.assertEqual(
-                invalidator._classify_distribution(distribution("web", "vilnacrm.example")), None
+                invalidator._classify_distribution(
+                    distribution("web", "vilnacrm.example")
+                ),
+                None,
             )
             self.assertEqual(
                 invalidator._classify_distribution(distribution("primary", BUCKET)),
                 cache_invalidation.Environment.PRODUCTION,
             )
             self.assertEqual(
-                invalidator._classify_distribution(distribution("staging", BUCKET, True)),
+                invalidator._classify_distribution(
+                    distribution("staging", BUCKET, True)
+                ),
                 cache_invalidation.Environment.STAGING,
             )
             # The role stays staging even when its exact origin pair is the bare pair after promotion.
@@ -351,9 +450,15 @@ class BlueGreenTests(unittest.TestCase):
         primary = distribution("primary", BUCKET)
         staging = distribution("staging", f"staging.{BUCKET}", True)
         policy_config = {
-            "StagingDistributionDnsNames": {"Quantity": 1, "Items": [staging["DomainName"]]},
+            "StagingDistributionDnsNames": {
+                "Quantity": 1,
+                "Items": [staging["DomainName"]],
+            },
             "Enabled": True,
-            "TrafficConfig": {"Type": "SingleHeader", "SingleHeaderConfig": {"Header": "aws-cf-cd-canary", "Value": "canary"}},
+            "TrafficConfig": {
+                "Type": "SingleHeader",
+                "SingleHeaderConfig": {"Header": "aws-cf-cd-canary", "Value": "canary"},
+            },
         }
         with tempfile.TemporaryDirectory() as temp_dir, patch.dict(
             os.environ,
@@ -364,15 +469,32 @@ class BlueGreenTests(unittest.TestCase):
                 "CLOUDFRONT_WEIGHT": "0.1",
                 "ENABLE_CLOUDFRONT_STAGING": "true",
             },
-        ), patch.object(policy, "find_project_distributions", return_value={"production": primary, "staging": staging}), patch.object(
+        ), patch.object(
+            policy,
+            "find_project_distributions",
+            return_value={"production": primary, "staging": staging},
+        ), patch.object(
             policy.subprocess,
             "check_output",
-            return_value=json.dumps({"DistributionConfig": {"ContinuousDeploymentPolicyId": "crm-policy"}}).encode(),
+            return_value=json.dumps(
+                {"DistributionConfig": {"ContinuousDeploymentPolicyId": "crm-policy"}}
+            ).encode(),
         ) as command, patch.object(
-            policy, "fetch_continuous_deployment_policy", return_value={"ETag": "etag", "ContinuousDeploymentPolicy": {"ContinuousDeploymentPolicyConfig": policy_config}}
-        ) as fetch, patch.object(policy, "update_continuous_deployment_policy") as update, patch.object(
+            policy,
+            "fetch_continuous_deployment_policy",
+            return_value={
+                "ETag": "etag",
+                "ContinuousDeploymentPolicy": {
+                    "ContinuousDeploymentPolicyConfig": policy_config
+                },
+            },
+        ) as fetch, patch.object(
+            policy, "update_continuous_deployment_policy"
+        ) as update, patch.object(
             policy.subprocess, "check_call"
-        ) as wait, patch.object(policy, "CONFIG_FILENAME", str(Path(temp_dir) / "policy.json")):
+        ) as wait, patch.object(
+            policy, "CONFIG_FILENAME", str(Path(temp_dir) / "policy.json")
+        ):
             policy.main()
         self.assertIn("primary", command.call_args.args[0])
         fetch.assert_called_once_with("crm-policy", "us-east-1")
@@ -383,13 +505,22 @@ class BlueGreenTests(unittest.TestCase):
         primary = distribution("crm-primary", BUCKET)
         with patch.dict(os.environ, {"BUCKET_NAME": BUCKET}), patch.object(
             distribution_deploy, "continuous_deployment_id", "crm-policy"
-        ), patch.object(distribution_deploy, "production_distribution_id", None), patch.object(
+        ), patch.object(
+            distribution_deploy, "production_distribution_id", None
+        ), patch.object(
             distribution_deploy,
             "find_project_distributions",
-            return_value={"production": primary, "staging": distribution("other", f"staging.{BUCKET}", True)},
+            return_value={
+                "production": primary,
+                "staging": distribution("other", f"staging.{BUCKET}", True),
+            },
         ), patch.object(
-            distribution_deploy, "fetch_production_distribution_config", return_value={"ETag": "etag"}
-        ) as fetch, patch.object(distribution_deploy, "update_production_distribution_config") as update:
+            distribution_deploy,
+            "fetch_production_distribution_config",
+            return_value={"ETag": "etag"},
+        ) as fetch, patch.object(
+            distribution_deploy, "update_production_distribution_config"
+        ) as update:
             distribution_deploy.main()
         fetch.assert_called_once_with("crm-primary")
         update.assert_called_once_with({"ETag": "etag"}, "crm-primary")

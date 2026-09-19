@@ -9,7 +9,10 @@ from pathlib import Path
 BUILD_DIR = os.environ.get("BUILD_DIR", "./out")
 DEPLOYMENT_MANIFEST = os.environ.get(
     "DEPLOYMENT_MANIFEST",
-    str(Path(os.environ.get("CODEBUILD_SRC_DIR", ".")) / "codepipeline-artifacts/deployment.json"),
+    str(
+        Path(os.environ.get("CODEBUILD_SRC_DIR", "."))
+        / "codepipeline-artifacts/deployment.json"
+    ),
 )
 
 
@@ -80,16 +83,28 @@ def deploy_files(target_bucket):
     try:
         result = subprocess.check_output(
             [
-                "aws", "s3", "sync", BUILD_DIR, f"s3://{target_bucket}",
-                "--cache-control", "public,max-age=0,must-revalidate",
-            ], text=True
+                "aws",
+                "s3",
+                "sync",
+                BUILD_DIR,
+                f"s3://{target_bucket}",
+                "--cache-control",
+                "public,max-age=0,must-revalidate",
+            ],
+            text=True,
         )
         index_file = Path(BUILD_DIR) / "index.html"
         subprocess.check_output(
             [
-                "aws", "s3", "cp", str(index_file), f"s3://{target_bucket}/index.html",
-                "--cache-control", "public,max-age=0,must-revalidate",
-                "--content-type", "text/html; charset=utf-8",
+                "aws",
+                "s3",
+                "cp",
+                str(index_file),
+                f"s3://{target_bucket}/index.html",
+                "--cache-control",
+                "public,max-age=0,must-revalidate",
+                "--content-type",
+                "text/html; charset=utf-8",
             ],
             text=True,
         )
@@ -102,8 +117,13 @@ def deploy_files(target_bucket):
             relative_path = path.relative_to(build_root).as_posix()
             content_type, _ = mimetypes.guess_type(path.name)
             command = [
-                "aws", "s3", "cp", str(path), f"s3://{target_bucket}/{relative_path}",
-                "--cache-control", "public,max-age=31536000,immutable",
+                "aws",
+                "s3",
+                "cp",
+                str(path),
+                f"s3://{target_bucket}/{relative_path}",
+                "--cache-control",
+                "public,max-age=31536000,immutable",
             ]
             if content_type:
                 command.extend(["--content-type", content_type])
@@ -136,7 +156,9 @@ def find_project_distributions(bucket_name):
         aliases_match = bucket_name in aliases or f"www.{bucket_name}" in aliases
         staging = bool(dist.get("Staging", False))
         if origin_pair_role(origins, bucket_name) is None:
-            print(f"Skipping distribution {dist['Id']} - origins are not an exact CRM bucket pair")
+            print(
+                f"Skipping distribution {dist['Id']} - origins are not an exact CRM bucket pair"
+            )
             continue
         if staging or aliases_match:
             role = "staging" if staging else "production"

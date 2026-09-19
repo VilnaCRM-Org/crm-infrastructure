@@ -27,13 +27,17 @@ def validate_manifest_identity(deployment: dict[str, Any]) -> None:
     revision = deployment.get("crm_source_revision")
     digest = deployment.get("index_sha256")
     if not isinstance(revision, str) or not revision.strip():
-        raise CloudFrontOriginSwapError("Deployment manifest is missing crm_source_revision")
+        raise CloudFrontOriginSwapError(
+            "Deployment manifest is missing crm_source_revision"
+        )
     if (
         not isinstance(digest, str)
         or len(digest) != 64
         or any(char not in "0123456789abcdef" for char in digest.lower())
     ):
-        raise CloudFrontOriginSwapError("Deployment manifest has an invalid index_sha256")
+        raise CloudFrontOriginSwapError(
+            "Deployment manifest has an invalid index_sha256"
+        )
 
 
 class CloudFrontOriginSwapper:
@@ -116,7 +120,9 @@ class CloudFrontOriginSwapper:
 
         bucket = os.environ.get("BUCKET_NAME", "")
         if not bucket:
-            raise CloudFrontOriginSwapError("BUCKET_NAME environment variable is required")
+            raise CloudFrontOriginSwapError(
+                "BUCKET_NAME environment variable is required"
+            )
         origins = dist_config.get("Origins", {}).get("Items", [])
         if origin_pair_role(origins, bucket) is None:
             self.logger.info(
@@ -221,7 +227,9 @@ class CloudFrontOriginSwapper:
             rollback = os.environ.get("ROLLBACK", "").strip().lower() == "true"
             if not self.enable_cloudfront_staging:
                 if rollback and deployment is None:
-                    self.logger.info("Rollback requested with CloudFront staging disabled; no origin change")
+                    self.logger.info(
+                        "Rollback requested with CloudFront staging disabled; no origin change"
+                    )
                     return
                 if deployment is None:
                     raise CloudFrontOriginSwapError(
@@ -232,7 +240,9 @@ class CloudFrontOriginSwapper:
                     raise CloudFrontOriginSwapError(
                         "Direct-mode release manifest must target the CRM primary bucket"
                     )
-                self.logger.info("CloudFront staging is disabled; validated direct-mode manifest without origin changes")
+                self.logger.info(
+                    "CloudFront staging is disabled; validated direct-mode manifest without origin changes"
+                )
                 return
 
             if deployment is None:
@@ -247,8 +257,14 @@ class CloudFrontOriginSwapper:
                 for dist_id in distribution_ids:
                     subprocess.check_call(
                         [
-                            "aws", "cloudfront", "wait", "distribution-deployed",
-                            "--id", dist_id, "--region", self.region,
+                            "aws",
+                            "cloudfront",
+                            "wait",
+                            "distribution-deployed",
+                            "--id",
+                            dist_id,
+                            "--region",
+                            self.region,
                         ]
                     )
                 self.logger.info("CloudFront rollback origin swap completed")
@@ -264,12 +280,18 @@ class CloudFrontOriginSwapper:
             distribution_ids, configs = self._filter_distributions()
             desired_origins = deployment.get("origins")
             if not isinstance(desired_origins, dict) or set(desired_origins) != {
-                "primary", "staging"
+                "primary",
+                "staging",
             }:
                 raise CloudFrontOriginSwapError(
                     "Deployment manifest must include primary and staging origins"
                 )
-            desired_by_id = dict(zip(distribution_ids, (desired_origins["primary"], desired_origins["staging"])))
+            desired_by_id = dict(
+                zip(
+                    distribution_ids,
+                    (desired_origins["primary"], desired_origins["staging"]),
+                )
+            )
             expected_primary_role = "primary" if target_bucket == bucket else "staging"
             expected_staging_role = "staging" if target_bucket == bucket else "primary"
             if (
@@ -292,8 +314,14 @@ class CloudFrontOriginSwapper:
             for dist_id in distribution_ids:
                 subprocess.check_call(
                     [
-                        "aws", "cloudfront", "wait", "distribution-deployed",
-                        "--id", dist_id, "--region", self.region,
+                        "aws",
+                        "cloudfront",
+                        "wait",
+                        "distribution-deployed",
+                        "--id",
+                        dist_id,
+                        "--region",
+                        self.region,
                     ]
                 )
 
@@ -341,7 +369,9 @@ def main() -> None:
         if os.environ.get("ROLLBACK", "").strip().lower() == "true":
             manifest = None
         else:
-            manifest = json.loads(Path(args.deployment_manifest).read_text(encoding="utf-8"))
+            manifest = json.loads(
+                Path(args.deployment_manifest).read_text(encoding="utf-8")
+            )
         swapper.execute_origin_swap(manifest)
     except CloudFrontOriginSwapError:
         logger.exception("CloudFront origin swap error")

@@ -16,7 +16,11 @@ from typing import Any, Optional
 
 try:
     import boto3
-    from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
+    from botocore.exceptions import (
+        ClientError,
+        NoCredentialsError,
+        PartialCredentialsError,
+    )
 except ImportError:  # Allows mocked unit tests without installing the AWS SDK locally.
     boto3 = None
 
@@ -28,6 +32,7 @@ except ImportError:  # Allows mocked unit tests without installing the AWS SDK l
 
     class PartialCredentialsError(Exception):
         pass
+
 
 from deploy_content import origin_pair_role
 
@@ -126,7 +131,9 @@ class CloudFrontCacheInvalidator:
 
         # Only process distributions with this CRM's exact app bucket origins.
         if not self._is_app_distribution(origin_domains):
-            self.logger.info("Skipping distribution outside CRM bucket pair: %s", dist_id)
+            self.logger.info(
+                "Skipping distribution outside CRM bucket pair: %s", dist_id
+            )
             return None
 
         # Classify as staging or production

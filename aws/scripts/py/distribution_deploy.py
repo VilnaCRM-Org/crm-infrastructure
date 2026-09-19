@@ -7,8 +7,10 @@ from deploy_content import find_project_distributions
 try:
     from dotenv import load_dotenv
 except ImportError:
+
     def load_dotenv(_path):
         return False
+
 
 load_dotenv("./.terraform.env")
 
@@ -78,7 +80,9 @@ def main():
     if not configured_distribution_id:
         bucket_name = os.environ.get("BUCKET_NAME")
         if not bucket_name:
-            raise RuntimeError("BUCKET_NAME is required to identify the CRM primary distribution")
+            raise RuntimeError(
+                "BUCKET_NAME is required to identify the CRM primary distribution"
+            )
         distributions = find_project_distributions(bucket_name)
         production = distributions["production"]
         if not production:
@@ -87,10 +91,14 @@ def main():
     else:
         bucket_name = os.environ.get("BUCKET_NAME")
         if not bucket_name:
-            raise RuntimeError("BUCKET_NAME is required to validate the CRM primary distribution")
+            raise RuntimeError(
+                "BUCKET_NAME is required to validate the CRM primary distribution"
+            )
         production = find_project_distributions(bucket_name)["production"]
         if not production or production["Id"] != configured_distribution_id:
-            raise RuntimeError("PRODUCTION_DISTRIBUTION_ID does not match the CRM primary distribution")
+            raise RuntimeError(
+                "PRODUCTION_DISTRIBUTION_ID does not match the CRM primary distribution"
+            )
     production_config = fetch_production_distribution_config(configured_distribution_id)
     update_production_distribution_config(production_config, configured_distribution_id)
     print("Main function completed.")

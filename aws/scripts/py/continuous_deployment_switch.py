@@ -133,7 +133,9 @@ def main():
     }
     missing = [name for name, value in required_env.items() if not value]
     if missing:
-        raise RuntimeError("Missing required environment variables: " + ", ".join(missing))
+        raise RuntimeError(
+            "Missing required environment variables: " + ", ".join(missing)
+        )
 
     distributions = find_project_distributions(required_env["BUCKET_NAME"])
     production = distributions["production"]
@@ -143,25 +145,37 @@ def main():
 
     primary_response = subprocess.check_output(
         [
-            "aws", "cloudfront", "get-distribution-config", "--id", production["Id"],
-            "--region", required_env["CLOUDFRONT_REGION"], "--no-cli-pager",
+            "aws",
+            "cloudfront",
+            "get-distribution-config",
+            "--id",
+            production["Id"],
+            "--region",
+            required_env["CLOUDFRONT_REGION"],
+            "--no-cli-pager",
         ]
     )
     policy_item_id = json.loads(primary_response.decode())["DistributionConfig"].get(
         "ContinuousDeploymentPolicyId"
     )
     if not policy_item_id:
-        raise RuntimeError("CRM primary distribution has no continuous deployment policy")
+        raise RuntimeError(
+            "CRM primary distribution has no continuous deployment policy"
+        )
     print(f"Policy item id: {policy_item_id}")
 
-    policy = fetch_continuous_deployment_policy(policy_item_id, required_env["CLOUDFRONT_REGION"])
+    policy = fetch_continuous_deployment_policy(
+        policy_item_id, required_env["CLOUDFRONT_REGION"]
+    )
     policy_etag = policy["ETag"]
     policy_config = policy["ContinuousDeploymentPolicy"][
         "ContinuousDeploymentPolicyConfig"
     ]
     staging_dns_name = policy_config["StagingDistributionDnsNames"]["Items"][0]
     if staging_dns_name != staging.get("DomainName"):
-        raise RuntimeError("CRM deployment policy points to another staging distribution")
+        raise RuntimeError(
+            "CRM deployment policy points to another staging distribution"
+        )
     print(
         f"Policy ETag: {policy_etag}, Staging DNS Name: {staging_dns_name}, "
         f"Current Config Type: {policy_config['TrafficConfig']['Type']}, "
@@ -180,13 +194,22 @@ def main():
             json.dump(continuous_deployment_policy, config_file, indent=4)
 
         update_continuous_deployment_policy(
-            policy_item_id, policy_etag, CONFIG_FILENAME, required_env["CLOUDFRONT_REGION"]
+            policy_item_id,
+            policy_etag,
+            CONFIG_FILENAME,
+            required_env["CLOUDFRONT_REGION"],
         )
     for distribution in (production, staging):
         subprocess.check_call(
             [
-                "aws", "cloudfront", "wait", "distribution-deployed", "--id",
-                distribution["Id"], "--region", required_env["CLOUDFRONT_REGION"],
+                "aws",
+                "cloudfront",
+                "wait",
+                "distribution-deployed",
+                "--id",
+                distribution["Id"],
+                "--region",
+                required_env["CLOUDFRONT_REGION"],
             ]
         )
     print("Main function completed")

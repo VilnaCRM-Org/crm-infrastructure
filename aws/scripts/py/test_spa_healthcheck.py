@@ -12,7 +12,7 @@ import spa_healthcheck as healthcheck
 
 
 SHELL = (
-    b'<!doctype html><html><head><title>VilnaCRM</title>'
+    b"<!doctype html><html><head><title>VilnaCRM</title>"
     b'<script id="app-runtime-config" type="application/json">'
     b'{"apiBaseUrl":"http://localhost:3000/api",'
     b'"graphqlUrl":"http://localhost:4000/graphql","flags":{}}'
@@ -66,7 +66,9 @@ class SpaHealthcheckTests(unittest.TestCase):
             return healthcheck.check("https://crm.test", **kwargs)
 
     def set_shell(self, shell):
-        self.responses.update({route: (shell, "text/html") for route in self.SHELL_ROUTES})
+        self.responses.update(
+            {route: (shell, "text/html") for route in self.SHELL_ROUTES}
+        )
 
     def test_accepts_identical_shell_and_localhost_runtime_defaults(self):
         self.assertTrue(self.run_check())
@@ -104,9 +106,17 @@ class SpaHealthcheckTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "deployment.json"
             path.write_text(json.dumps(manifest), encoding="utf-8")
-            self.assertTrue(self.run_check(manifest=str(path), env={"CRM_SOURCE_VERSION": "crm-rev-1"}))
-            with self.assertRaisesRegex(ValueError, "does not match CRM_SOURCE_VERSION"):
-                self.run_check(manifest=str(path), env={"CRM_SOURCE_VERSION": "crm-rev-2"})
+            self.assertTrue(
+                self.run_check(
+                    manifest=str(path), env={"CRM_SOURCE_VERSION": "crm-rev-1"}
+                )
+            )
+            with self.assertRaisesRegex(
+                ValueError, "does not match CRM_SOURCE_VERSION"
+            ):
+                self.run_check(
+                    manifest=str(path), env={"CRM_SOURCE_VERSION": "crm-rev-2"}
+                )
 
     def test_source_version_requires_manifest(self):
         with self.assertRaisesRegex(ValueError, "--deployment-manifest is required"):
@@ -115,14 +125,18 @@ class SpaHealthcheckTests(unittest.TestCase):
     def test_manifest_hash_must_match_served_index(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "deployment.json"
-            path.write_text(json.dumps({"index_sha256": "0" * 64, "crm_source_revision": "r"}))
+            path.write_text(
+                json.dumps({"index_sha256": "0" * 64, "crm_source_revision": "r"})
+            )
             with self.assertRaisesRegex(ValueError, "index_sha256"):
                 self.run_check(manifest=str(path))
 
     def test_manifest_must_include_both_identity_fields(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "deployment.json"
-            path.write_text(json.dumps({"index_sha256": hashlib.sha256(SHELL).hexdigest()}))
+            path.write_text(
+                json.dumps({"index_sha256": hashlib.sha256(SHELL).hexdigest()})
+            )
             with self.assertRaisesRegex(ValueError, "crm_source_revision"):
                 self.run_check(manifest=str(path))
 
@@ -154,6 +168,7 @@ class SpaHealthcheckTests(unittest.TestCase):
     def test_accepts_missing_asset_403_or_404(self):
         for status in (403, 404):
             with self.subTest(status=status):
+
                 def missing_asset(request, **kwargs):
                     if request.full_url.endswith(healthcheck.MISSING_ASSET_PATH):
                         response = FakeResponse(b"not found", "text/plain")
@@ -171,12 +186,16 @@ class SpaHealthcheckTests(unittest.TestCase):
             return self.serve(request, **kwargs)
 
         with patch.object(healthcheck, "urlopen", side_effect=html_fallback):
-            with self.assertRaisesRegex(ValueError, "Missing-asset probe returned HTTP 200"):
+            with self.assertRaisesRegex(
+                ValueError, "Missing-asset probe returned HTTP 200"
+            ):
                 healthcheck.check("https://crm.test")
 
     def test_rejects_missing_root_mount(self):
-        self.responses["/"] = (SHELL.replace(b"id=\"root\"", b"id=\"app\""), "text/html")
-        self.responses.update({route: self.responses["/"] for route in self.SHELL_ROUTES[1:]})
+        self.responses["/"] = (SHELL.replace(b'id="root"', b'id="app"'), "text/html")
+        self.responses.update(
+            {route: self.responses["/"] for route in self.SHELL_ROUTES[1:]}
+        )
         with self.assertRaisesRegex(ValueError, "#root"):
             self.run_check()
 
@@ -187,7 +206,10 @@ class SpaHealthcheckTests(unittest.TestCase):
             self.run_check()
 
     def test_rejects_invalid_runtime_json(self):
-        self.responses["/"] = (SHELL.replace(b'{"apiBaseUrl":', b'{broken,"apiBaseUrl":'), "text/html")
+        self.responses["/"] = (
+            SHELL.replace(b'{"apiBaseUrl":', b'{broken,"apiBaseUrl":'),
+            "text/html",
+        )
         self.responses["/sign-in"] = self.responses["/"]
         self.responses["/sign-in/"] = self.responses["/"]
         self.responses["/sign-up"] = self.responses["/"]
@@ -199,7 +221,7 @@ class SpaHealthcheckTests(unittest.TestCase):
             b'<script id="app-runtime-config" type="application/json">'
             b'{"apiBaseUrl":"http://localhost:3000/api",'
             b'"graphqlUrl":"http://localhost:4000/graphql","flags":{}}'
-            b'</script>',
+            b"</script>",
             b"",
         )
         self.set_shell(shell)
@@ -207,9 +229,9 @@ class SpaHealthcheckTests(unittest.TestCase):
             self.run_check()
 
     def test_allows_missing_runtime_urls_for_app_build_defaults(self):
-        shell = SHELL.replace(b'"apiBaseUrl":"http://localhost:3000/api",', b"").replace(
-            b'"graphqlUrl":"http://localhost:4000/graphql",', b""
-        )
+        shell = SHELL.replace(
+            b'"apiBaseUrl":"http://localhost:3000/api",', b""
+        ).replace(b'"graphqlUrl":"http://localhost:4000/graphql",', b"")
         self.set_shell(shell)
         self.assertTrue(self.run_check())
 

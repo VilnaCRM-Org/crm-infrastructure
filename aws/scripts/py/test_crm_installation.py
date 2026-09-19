@@ -20,7 +20,13 @@ class CrmInstallationTests(unittest.TestCase):
                 (source / "package.json").write_text('{"name":"crm"}')
                 (source / ".env.example").write_text("EXAMPLE=true\n")
             result = subprocess.run(
-                ["bash", "-c", 'source "$1"; test -f .env.example', "test", str(SCRIPT)],
+                [
+                    "bash",
+                    "-c",
+                    'source "$1"; test -f .env.example',
+                    "test",
+                    str(SCRIPT),
+                ],
                 env={
                     "PATH": os.environ["PATH"],
                     "CODEBUILD_SRC_DIR": str(root),
