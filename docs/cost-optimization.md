@@ -19,7 +19,7 @@ These are service totals, not fully avoidable costs. No AWS changes were applied
 - Artifact access logs go to existing dedicated infrastructure logging buckets,
   with source-specific prefixes and scoped permissions, avoiding log recursion.
 - Automatic infrastructure triggers exclude changes confined to root README.md,
-  diagrams/** and docs/**: CodePipeline V2 filters main-branch pushes and the
+  diagrams/**and docs/**: CodePipeline V2 filters main-branch pushes and the
   GitHub workflow filters non-main pushes. Mixed code/docs commits and manual
   executions still run. This avoids redundant infrastructure builds and their
   downstream application deployments.
