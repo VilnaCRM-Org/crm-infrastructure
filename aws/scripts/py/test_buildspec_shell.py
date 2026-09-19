@@ -60,14 +60,14 @@ def load_buildspec(name, batch=True):
 
 
 class BuildspecShellTests(unittest.TestCase):
-    def test_memory_intensive_children_are_sized_without_weakening_gates(self):
+    def test_aws_mutation_is_deferred_but_other_quality_children_remain_required(self):
         batch = load_buildspec("batch_unit_mutation_integration_lint", batch=False)[
             "batch"
         ]
         self.assertFalse(batch["fast-fail"])
-        self.assertEqual(len(batch["build-list"]), 4)
+        self.assertEqual(len(batch["build-list"]), 3)
         children = {child["identifier"]: child for child in batch["build-list"]}
-        self.assertEqual(set(children), {"unit", "mutation", "integration", "lint"})
+        self.assertEqual(set(children), {"unit", "integration", "lint"})
         for name, child in children.items():
             with self.subTest(child=name):
                 self.assertFalse(child["ignore-failure"])
@@ -78,7 +78,6 @@ class BuildspecShellTests(unittest.TestCase):
                     child.get("env", {}),
                     {
                         "unit": {"compute-type": "BUILD_GENERAL1_MEDIUM"},
-                        "mutation": {"compute-type": "BUILD_GENERAL1_LARGE"},
                     }.get(name, {}),
                 )
 
