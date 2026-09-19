@@ -1,6 +1,8 @@
 module "crm_infra_s3_artifacts_bucket" {
   source = "../../modules/aws/s3/codepipeline"
 
+  logging_bucket_id = module.infrastructure_logging_bucket.id
+
   project_name = var.crm_infra_project_name
 
   region      = var.region

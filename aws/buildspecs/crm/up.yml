@@ -24,9 +24,20 @@ phases:
       - 'make terraspace-up-plan stack="crm" plan="crm.plan"'
       - 'make terraspace-output-file stack="crm" out=".terraform.env"'
       - "cd terraform"
-      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/distribution_deploy.py"
-      - "echo Triggering CI-CD Crm Pipeline"
-      - "aws codepipeline start-pipeline-execution --name $CI_CD_CRM_PIPELINE_NAME || { echo 'Error starting CodePipeline'; exit 1; }"
+      - |
+        migration_in_progress="$(python3 -c 'from dotenv import dotenv_values; print(dotenv_values(".terraform.env")["WAF_MIGRATION_IN_PROGRESS"])')" || { echo "Cannot read WAF migration status"; exit 1; }
+        case "$migration_in_progress" in
+          false)
+            aws codepipeline start-pipeline-execution --name "$CI_CD_CRM_PIPELINE_NAME" || { echo 'Error starting CodePipeline'; exit 1; }
+            ;;
+          true)
+            echo "WAF migration in progress; downstream application deployment is deferred"
+            ;;
+          *)
+            echo "Invalid WAF migration status"
+            exit 1
+            ;;
+        esac
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'up complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/up.txt"

@@ -20,7 +20,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_500_errors" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cloudfront_origin_latency" {
-  count               = var.enable_cloudwatch_alarms ? 1 : 0
+  count               = var.enable_cloudwatch_alarms && var.enable_origin_latency_alarms ? 1 : 0
   provider            = aws.us-east-1
   alarm_name          = "${var.project_name}-cloudfront-origin-latency-alarm"
   comparison_operator = "GreaterThanThreshold"
@@ -56,7 +56,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_country_blocked_requests" {
   treat_missing_data  = "notBreaching"
   dimensions = {
     Country = "RU"
-    WebACL  = "wafv2-web-acl-crm"
+    WebACL  = local.waf_web_acl_name
   }
 }
 
@@ -75,7 +75,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_high_rate_blocked_requests" {
   actions_enabled     = true
   treat_missing_data  = "notBreaching"
   dimensions = {
-    WebACL = "wafv2-web-acl-crm"
+    WebACL = local.waf_web_acl_name
   }
 }
 
@@ -96,7 +96,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_scanning_alarm" {
   alarm_actions       = [aws_sns_topic.cloudwatch_alarm_notifications.arn]
   dimensions = {
     Rule   = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
-    WebACL = "wafv2-web-acl-crm"
+    WebACL = local.waf_web_acl_name
   }
 }
 
@@ -126,7 +126,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_bots_alarm" {
       stat        = "Average"
       dimensions = {
         VerificationStatus = "bot:unverified"
-        WebACL             = "wafv2-web-acl-crm"
+        WebACL             = local.waf_web_acl_name
         BotCategory        = "ALL_BOTS"
       }
     }
@@ -141,7 +141,7 @@ resource "aws_cloudwatch_metric_alarm" "wafv2_bots_alarm" {
       stat        = "Average"
       dimensions = {
         VerificationStatus = "bot:verified"
-        WebACL             = "wafv2-web-acl-crm"
+        WebACL             = local.waf_web_acl_name
         BotCategory        = "ALL_BOTS"
       }
     }
@@ -193,7 +193,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_staging_500_errors" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cloudfront_staging_origin_latency" {
-  count               = var.enable_cloudwatch_alarms && var.enable_cloudfront_staging ? 1 : 0
+  count               = var.enable_cloudwatch_alarms && var.enable_origin_latency_alarms && var.enable_cloudfront_staging ? 1 : 0
   provider            = aws.us-east-1
   alarm_name          = "${var.project_name}-cloudfront-staging-origin-latency-alarm"
   comparison_operator = "GreaterThanThreshold"

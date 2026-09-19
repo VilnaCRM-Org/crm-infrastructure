@@ -97,6 +97,13 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
     ]
   }
   statement {
+    sid     = "DiscoverSharedCloudfrontWebACL"
+    effect  = "Allow"
+    actions = ["wafv2:ListWebACLs"]
+    # The name-based data source uses ListWebACLs, which has no resource scope.
+    resources = ["*"]
+  }
+  statement {
     sid    = "WAFV2GlobalCreationPolicy"
     effect = "Allow"
     actions = [
