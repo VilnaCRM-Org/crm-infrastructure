@@ -26,6 +26,12 @@ phases:
       - "echo ## TERRASPACE UP : Bringing up the infrastructure"
       - "bash ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/restore_plan_artifacts.sh"
       - "make terraspace-ci-cd-infra-up-plan"
+      - |
+        make terraspace-output-file stack="ci-cd-infrastructure-crm" out=".ci-cd-infrastructure-crm.env"
+        pipeline_name=$(sed -n 's/^crm_infra_pipeline_name = "\([^"]*\)"$/\1/p' "${CODEBUILD_SRC_DIR}/terraform/.ci-cd-infrastructure-crm.env")
+        test -n "$pipeline_name" || { echo "Missing CRM infrastructure pipeline output" >&2; exit 1; }
+        aws codepipeline start-pipeline-execution --name "$pipeline_name" \
+          --source-revisions "actionName=Download-Source,revisionType=COMMIT_ID,revisionValue=${CODEBUILD_RESOLVED_SOURCE_VERSION:?Missing source revision}"
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'up complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/up.txt"

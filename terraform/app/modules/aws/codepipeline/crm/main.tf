@@ -1,8 +1,10 @@
 resource "aws_codepipeline" "terraform_pipeline" {
   #checkov:skip=CKV_AWS_219: S3 bucket has encryption by default
-  name     = "${var.project_name}-pipeline"
-  role_arn = var.codepipeline_role_arn
-  tags     = var.tags
+  name           = "${var.project_name}-pipeline"
+  role_arn       = var.codepipeline_role_arn
+  tags           = var.tags
+  pipeline_type  = "V2"
+  execution_mode = "QUEUED"
 
   artifact_store {
     location = var.s3_bucket_name
@@ -29,6 +31,24 @@ resource "aws_codepipeline" "terraform_pipeline" {
         DetectChanges    = var.detect_changes
       }
     }
+
+    action {
+      name             = "CrmSource"
+      category         = "Source"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
+      version          = "1"
+      namespace        = "CrmSourceVariables"
+      output_artifacts = ["CrmSource"]
+      run_order        = 1
+
+      configuration = {
+        ConnectionArn    = var.codestar_connection_arn
+        FullRepositoryId = "${var.source_repo_owner}/${var.crm_content_repo_name}"
+        BranchName       = var.crm_repo_branch
+        DetectChanges    = "true"
+      }
+    }
   }
 
   dynamic "stage" {
@@ -50,6 +70,14 @@ resource "aws_codepipeline" "terraform_pipeline" {
           CombineArtifacts = startswith(stage.value.name, "batch") ? true : false
           BatchEnabled     = startswith(stage.value.name, "batch") ? true : false
           ProjectName      = stage.value.provider == "CodeBuild" ? "${var.project_name}-${stage.value.name}" : null
+          PrimarySource    = stage.value.provider == "CodeBuild" && length(stage.value.input_artifacts) > 1 ? stage.value.input_artifacts[0] : null
+          EnvironmentVariables = stage.value.provider == "CodeBuild" ? jsonencode([
+            {
+              name  = "CRM_SOURCE_VERSION"
+              value = "#{CrmSourceVariables.CommitId}"
+              type  = "PLAINTEXT"
+            }
+          ]) : null
         }
       }
     }

@@ -178,6 +178,8 @@ locals {
 
     deploy = merge(local.ubuntu_based_build,
       { env_variables = {
+        "APP_CONFIG_API_BASE_URL"   = var.app_config_api_base_url,
+        "APP_CONFIG_GRAPHQL_URL"    = var.app_config_graphql_url,
         "CI"                        = 1
         "NODEJS_VERSION"            = var.runtime_versions.nodejs,
         "PYTHON_VERSION"            = var.runtime_versions.python,
@@ -197,7 +199,13 @@ locals {
 
     healthcheck = merge(local.amazonlinux2_based_build,
       { env_variables = {
-        "CRM_URL" = var.crm_url
+        "CRM_URL"                   = var.crm_url,
+        "BUCKET_NAME"               = var.bucket_name,
+        "CLOUDFRONT_REGION"         = var.cloudfront_configuration.region,
+        "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "ENABLE_CLOUDFRONT_STAGING" = tostring(var.enable_cloudfront_staging),
+        "PYTHON_VERSION"            = var.runtime_versions.python,
+        "SCRIPT_DIR"                = var.script_dir,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/healthcheck.yml" })
@@ -244,9 +252,13 @@ locals {
 
     release = merge(local.ubuntu_based_build,
       { env_variables = {
-        "PYTHON_VERSION"    = var.runtime_versions.python,
-        "SCRIPT_DIR"        = var.script_dir,
-        "CLOUDFRONT_REGION" = var.cloudfront_configuration.region,
+        "CRM_URL"                   = var.crm_url,
+        "BUCKET_NAME"               = var.bucket_name,
+        "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+        "ENABLE_CLOUDFRONT_STAGING" = tostring(var.enable_cloudfront_staging),
+        "PYTHON_VERSION"            = var.runtime_versions.python,
+        "SCRIPT_DIR"                = var.script_dir,
+        "CLOUDFRONT_REGION"         = var.cloudfront_configuration.region,
         }
       },
     { buildspec = "./aws/buildspecs/${var.crm_buildspecs}/release.yml" })
@@ -264,9 +276,14 @@ locals {
   }
 
   codebuild_cloudfront_rollback_project_env_variables = {
-    "CLOUDFRONT_REGION" = var.cloudfront_configuration.region,
-    "PYTHON_VERSION"    = var.runtime_versions.python,
-    "SCRIPT_DIR"        = var.script_dir,
+    "ROLLBACK"                  = "true",
+    "CRM_URL"                   = var.crm_url,
+    "BUCKET_NAME"               = var.bucket_name,
+    "CLOUDFRONT_HEADER"         = var.continuous_deployment_policy_header,
+    "ENABLE_CLOUDFRONT_STAGING" = tostring(var.enable_cloudfront_staging),
+    "CLOUDFRONT_REGION"         = var.cloudfront_configuration.region,
+    "PYTHON_VERSION"            = var.runtime_versions.python,
+    "SCRIPT_DIR"                = var.script_dir,
   }
 
   common_sandbox_env_variables = {

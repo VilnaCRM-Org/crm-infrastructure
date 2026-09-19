@@ -43,9 +43,9 @@ crm_infra_stage_input = [
 ]
 
 ci_cd_crm_stage_input = [
-  { name = "deploy", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput"], output_artifacts = "DeployOutput" },
-  { name = "healthcheck", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput"], output_artifacts = "HealthcheckOutput" },
-  { name = "release", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput"], output_artifacts = "ReleaseOutput" },
+  { name = "deploy", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput", "CrmSource"], output_artifacts = "DeployOutput" },
+  { name = "healthcheck", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput", "CrmSource", "DeployOutput"], output_artifacts = "HealthcheckOutput" },
+  { name = "release", category = "Build", owner = "AWS", provider = "CodeBuild", input_artifacts = ["SourceOutput", "CrmSource", "DeployOutput"], output_artifacts = "ReleaseOutput" },
 ]
 
 sandbox_stage_input = [

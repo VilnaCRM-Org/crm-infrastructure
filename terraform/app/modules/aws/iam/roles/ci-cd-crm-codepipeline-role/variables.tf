@@ -23,6 +23,11 @@ variable "source_repo_name" {
   type        = string
 }
 
+variable "crm_content_repo_name" {
+  description = "CRM application repository allowed through the source connection"
+  type        = string
+}
+
 variable "codepipeline_iam_role_name" {
   description = "Name of the IAM role to be used by the project"
   type        = string

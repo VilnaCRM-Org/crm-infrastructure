@@ -1,6 +1,7 @@
 version: 0.2
 
 env:
+  shell: bash
   variables:
     ACCOUNT_ID: $ACCOUNT_ID
     ENVIRONMENT: $ENVIRONMENT

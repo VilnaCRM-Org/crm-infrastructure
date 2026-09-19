@@ -14,8 +14,27 @@ import time
 from enum import Enum
 from typing import Any, Optional
 
-import boto3
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
+try:
+    import boto3
+    from botocore.exceptions import (
+        ClientError,
+        NoCredentialsError,
+        PartialCredentialsError,
+    )
+except ImportError:  # Allows mocked unit tests without installing the AWS SDK locally.
+    boto3 = None
+
+    class ClientError(Exception):
+        pass
+
+    class NoCredentialsError(Exception):
+        pass
+
+    class PartialCredentialsError(Exception):
+        pass
+
+
+from deploy_content import origin_pair_role
 
 try:
     from mypy_boto3_cloudfront import CloudFrontClient
@@ -66,6 +85,10 @@ class CloudFrontCacheInvalidator:
     def _create_cloudfront_client(self) -> CloudFrontClient:
         """Create and configure CloudFront client"""
         try:
+            if boto3 is None:
+                raise CloudFrontInvalidationError(
+                    "boto3 is required to create a CloudFront client"
+                )
             client = boto3.client("cloudfront")
             self.logger.debug("CloudFront client created successfully")
             return client
@@ -79,24 +102,16 @@ class CloudFrontCacheInvalidator:
             ) from err
 
     def _is_app_distribution(self, origin_domains: list[str]) -> bool:
-        """Check if this is an app distribution (should be targeted for CRM)"""
-        return any("app." in domain for domain in origin_domains)
+        """Check that both CRM bucket origins form one exact base/replica pair."""
+        bucket = os.environ.get("BUCKET_NAME", "")
+        origins = [{"DomainName": domain} for domain in origin_domains]
+        return bool(bucket) and origin_pair_role(origins, bucket) is not None
 
     def _is_staging_distribution(
         self, distribution: dict[str, Any], origin_domains: list[str]
     ) -> bool:
         """Check if this is a staging distribution"""
-        # Check staging flag
-        if distribution.get("IsStagingDistribution", False):
-            return True
-
-        # Check for staging in origin domains (for app domains)
-        staging_origins = [
-            domain
-            for domain in origin_domains
-            if "staging" in domain.lower() and "app." in domain
-        ]
-        return len(staging_origins) > 0
+        return bool(distribution.get("Staging", False))
 
     def _classify_distribution(
         self, distribution: dict[str, Any]
@@ -114,9 +129,11 @@ class CloudFrontCacheInvalidator:
             for origin in distribution.get("Origins", {}).get("Items", [])
         ]
 
-        # Only process app distributions for CRM
+        # Only process distributions with this CRM's exact app bucket origins.
         if not self._is_app_distribution(origin_domains):
-            self.logger.info("Skipping non-app distribution: %s", dist_id)
+            self.logger.info(
+                "Skipping distribution outside CRM bucket pair: %s", dist_id
+            )
             return None
 
         # Classify as staging or production
@@ -158,7 +175,12 @@ class CloudFrontCacheInvalidator:
         # Classify each distribution and keep the first one found for each environment
         for distribution in all_distributions:
             environment = self._classify_distribution(distribution)
-            if environment and environment not in env_distributions:
+            if environment:
+                if environment in env_distributions:
+                    raise CloudFrontInvalidationError(
+                        f"Found multiple CRM {environment.value} distributions; "
+                        "refusing to invalidate an ambiguous distribution set"
+                    )
                 env_distributions[environment] = distribution
 
         # Make sure we found both environments
