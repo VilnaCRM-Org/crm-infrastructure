@@ -43,11 +43,5 @@ jobs:
 
           echo "${OUTPUT}"
 
-          if echo "${OUTPUT}" | grep -q "Source revisions can only be used with V2 pipelines"; then
-            echo "::warning::ci-cd-infra-crm-test-pipeline is still V1; starting without a source revision override until the V2 pipeline update is applied."
-            aws codepipeline start-pipeline-execution --name ci-cd-infra-crm-test-pipeline
-            exit 0
-          fi
-
           echo "::error::Failed to start V2 pipeline with source revision ${GITHUB_SHA}."
           exit 1

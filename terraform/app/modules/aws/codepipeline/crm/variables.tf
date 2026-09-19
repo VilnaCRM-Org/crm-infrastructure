@@ -18,6 +18,16 @@ variable "source_repo_branch" {
   type        = string
 }
 
+variable "crm_content_repo_name" {
+  description = "CRM application repository captured in each pipeline execution"
+  type        = string
+}
+
+variable "crm_repo_branch" {
+  description = "CRM application branch that triggers content deployments"
+  type        = string
+}
+
 variable "region" {
   description = "Region for this project"
   type        = string

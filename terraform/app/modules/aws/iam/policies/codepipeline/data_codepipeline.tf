@@ -1,5 +1,12 @@
 data "aws_iam_policy_document" "codepipeline_policy_doc" {
   statement {
+    sid       = "StartCrmInfrastructureAfterApply"
+    effect    = "Allow"
+    actions   = ["codepipeline:StartPipelineExecution"]
+    resources = ["arn:aws:codepipeline:${var.region}:${local.account_id}:${var.crm_project_name}-pipeline"]
+  }
+
+  statement {
     sid    = "CodePipelinePolicy"
     effect = "Allow"
     actions = [

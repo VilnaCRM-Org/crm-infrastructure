@@ -8,6 +8,14 @@ phases:
   build:
     commands:
       - "echo ## Test Crm Connection..."
+      - |
+        if [ "${ENABLE_CLOUDFRONT_STAGING:-true}" = "true" ]; then
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/spa_healthcheck.py" --url "https://${CRM_URL}" --staging \
+            --deployment-manifest "${CODEBUILD_SRC_DIR_DeployOutput:?Missing deployment artifact}/codepipeline-artifacts/deployment.json"
+        else
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/spa_healthcheck.py" --url "https://${CRM_URL}" \
+            --deployment-manifest "${CODEBUILD_SRC_DIR_DeployOutput:?Missing deployment artifact}/codepipeline-artifacts/deployment.json"
+        fi
       - "python3 ${CODEBUILD_SRC_DIR}/aws/scripts/py/healthcheck.py --url https://${CRM_URL} --expect-cn ${CRM_URL} --expect-issuer-country US --expect-issuer-org Amazon --expect-issuer-cn-regex 'Amazon RSA 2048 M[0-9]+' --min-cert-days 30"
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"

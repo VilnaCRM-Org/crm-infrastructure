@@ -103,6 +103,18 @@ variable "crm_repo_branch" {
   type        = string
 }
 
+variable "app_config_api_base_url" {
+  description = "Optional CRM runtime API URL rendered during deployment. The backend is not yet provisioned; localhost is the current application default. A custom origin also requires updating connect-src in app/modules/aws/cloudfront/headers.tf before deploying the runtime change."
+  type        = string
+  default     = "http://localhost:3000/api"
+}
+
+variable "app_config_graphql_url" {
+  description = "Optional CRM runtime GraphQL URL rendered during deployment. The backend is not yet provisioned; localhost is the current application default. A custom origin also requires updating connect-src in app/modules/aws/cloudfront/headers.tf before deploying the runtime change."
+  type        = string
+  default     = "http://localhost:4000/graphql"
+}
+
 variable "github_connection_name" {
   description = "Name of the CodeStar connection"
   type        = string

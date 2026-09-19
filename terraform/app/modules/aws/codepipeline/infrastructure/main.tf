@@ -1,9 +1,10 @@
 resource "aws_codepipeline" "terraform_pipeline" {
   #checkov:skip=CKV_AWS_219: S3 bucket has encryption by default
-  name          = "${var.project_name}-pipeline"
-  role_arn      = var.codepipeline_role_arn
-  pipeline_type = "V2"
-  tags          = var.tags
+  name           = "${var.project_name}-pipeline"
+  role_arn       = var.codepipeline_role_arn
+  pipeline_type  = "V2"
+  execution_mode = "QUEUED"
+  tags           = var.tags
 
   artifact_store {
     location = var.s3_bucket_name

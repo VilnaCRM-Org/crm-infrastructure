@@ -7,14 +7,9 @@ tasks:
       TS_TERRAFORM_BIN: terraform
       TS_VERSION_CHECK: "0"
     cmds:
-      - make terraspace-init stack=ci-cd-infrastructure-crm
-      - make terraspace-validate stack=ci-cd-infrastructure-crm
-      - make terraspace-init stack=ci-cd-iam
-      - make terraspace-validate stack=ci-cd-iam
-      - make terraspace-init stack=crm-iam
-      - make terraspace-validate stack=crm-iam
-      - make terraspace-init stack=iam-groups
-      - make terraspace-validate stack=iam-groups
+      - python3 -m unittest discover -s aws/scripts/py -p test_ci_stack_ownership.py
+      - make terraspace-ci-cd-infra-init
+      - make terraspace-ci-cd-infra-validate
     silent: false
 
   format:

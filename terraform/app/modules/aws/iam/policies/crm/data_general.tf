@@ -96,6 +96,7 @@ data "aws_iam_policy_document" "general_policy_doc" {
       "cloudfront:UpdateFunction",
       "cloudfront:DescribeFunction",
       "cloudfront:GetFunction",
+      "cloudfront:ListTagsForResource",
       "cloudfront:CreateFunction",
       "cloudfront:PublishFunction",
       "cloudfront:DeleteFunction"
@@ -139,4 +140,4 @@ data "aws_iam_policy_document" "general_policy_doc" {
     ]
     resources = ["arn:aws:cloudformation:${var.region}:${local.account_id}:resource/*"]
   }
-} 
+}

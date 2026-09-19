@@ -57,7 +57,9 @@ codebuild-run: ## Running CodeBuild for specific buildspec. Example: make codebu
 	./codebuild_build.sh -i $(image) -d -a codebuild_artifacts -b $(buildspec) -e .env -m
 
 TERRAFORM_VERSION ?= 1.14.3
-CI_CD_INFRA_STACKS = ci-cd-infrastructure-crm ci-cd-iam crm-iam iam-groups
+# Shared ci-cd-iam and iam-groups state belongs to website-infrastructure.
+# CRM must not manage it through its separate backend lock table.
+CI_CD_INFRA_STACKS = ci-cd-infrastructure-crm crm-iam
 
 install-terraspace: ## Install terraspace locally.
 	@$(ECHO) "## Install Terraform"

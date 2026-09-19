@@ -36,3 +36,7 @@ terraform/.terraformrc
 terraform/terraform.rc
 
 .env
+
+# Local Python regression-test bytecode
+__pycache__/
+*.pyc

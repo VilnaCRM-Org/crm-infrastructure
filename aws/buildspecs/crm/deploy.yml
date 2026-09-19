@@ -13,6 +13,14 @@ phases:
     commands:
       - "echo #### Build Project"
       - "make build-out"
+      # Static extraction does not execute the production image entrypoint.
+      # Use its renderer explicitly; the exact rendered shell is promoted unchanged.
+      - |
+        docker run --rm --user "$(id -u):$(id -g)" \
+          --entrypoint node \
+          -e APP_CONFIG_API_BASE_URL -e APP_CONFIG_GRAPHQL_URL \
+          -v "${CODEBUILD_SRC_DIR}/crm/out:/artifact" \
+          rsbuild-bundle /app/scripts/render-app-config.js /artifact/index.html
       - "echo #### Deploy Project"
       - |
         alarm_exists() {
@@ -44,15 +52,12 @@ phases:
           echo "Alarm $ALARM_NAME not found or already disabled, skipping disable"
         fi
 
+        if [ "${ENABLE_CLOUDFRONT_STAGING:-true}" = "true" ]; then
+          python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/continuous_deployment_switch.py
+        fi
         python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/deploy_content.py
         echo "#### Invalidate CloudFront Cache"
         python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/cache_invalidation.py
-      - |
-        if [ "${ENABLE_CLOUDFRONT_STAGING:-true}" = "true" ]; then
-          python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/continuous_deployment_switch.py
-        else
-          echo "CloudFront staging disabled, skipping continuous deployment switch"
-        fi
     finally:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'deploy complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/deploy.txt"
@@ -60,3 +65,4 @@ phases:
 artifacts:
   files:
     - "codepipeline-artifacts/deploy.txt"
+    - "codepipeline-artifacts/deployment.json"
