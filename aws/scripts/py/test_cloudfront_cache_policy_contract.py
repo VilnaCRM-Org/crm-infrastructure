@@ -12,7 +12,9 @@ class CloudFrontCachePolicyContractTests(unittest.TestCase):
         source = (MODULE / "main.tf").read_text()
         self.assertEqual(source.count("default_cache_behavior {"), 2)
         self.assertEqual(
-            source.count("cache_policy_id = aws_cloudfront_cache_policy.cloudfront_cache_policy.id"),
+            source.count(
+                "cache_policy_id = aws_cloudfront_cache_policy.cloudfront_cache_policy.id"
+            ),
             2,
         )
         self.assertNotRegex(source, r"(?m)^\s*(min_ttl|default_ttl|max_ttl)\s*=")
