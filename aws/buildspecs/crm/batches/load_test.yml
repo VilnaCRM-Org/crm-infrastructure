@@ -31,6 +31,7 @@ phases:
         . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
         echo "Running load checks"
         . "${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh" test-load
+        . "${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_pw_load.sh" test-load-signup
         BASH
     finally:
       - |

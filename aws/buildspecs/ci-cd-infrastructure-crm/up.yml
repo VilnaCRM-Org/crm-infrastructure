@@ -4,6 +4,9 @@ env:
   variables:
     TS_TERRAFORM_BIN: "terraform"
     TS_VERSION_CHECK: "0"
+    GITHUB_TOKEN_WAIT_SECONDS: "300"
+    GITHUB_TOKEN_MIN_TTL_SECONDS: "900"
+    GITHUB_TOKEN_POLL_SECONDS: "15"
 
 phases:
   install:

@@ -3,6 +3,7 @@
 set -e
 
 dockerfile_candidates=(
+    "$CODEBUILD_SRC_DIR"/crm/tests/load/dockerfile
     "$CODEBUILD_SRC_DIR"/crm/tests/load/Dockerfile
     "$CODEBUILD_SRC_DIR"/crm/src/test/load/Dockerfile
 )

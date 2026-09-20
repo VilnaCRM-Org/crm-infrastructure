@@ -1,6 +1,8 @@
 name: "GitHub Token Rotation"
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "0 * * * *"
     - cron: "50 * * * *"
@@ -13,6 +15,7 @@ env:
 
 jobs:
   rotate-github-token:
+    if: github.ref == 'refs/heads/main'
     concurrency:
       group: github-token-rotation-prod
       cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
@@ -73,6 +76,9 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          persist-credentials: false
 
       - name: Rotate GitHub Token
         env:

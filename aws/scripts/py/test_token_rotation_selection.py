@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[3]
 def selection_query(script_name):
     script = (ROOT / "aws/scripts/sh" / script_name).read_text()
     query = re.search(
-        r'SECRET_ID=\$\(aws secretsmanager list-secrets\b.*?--query "([^"]+)"',
+        r'SECRET_ID=\$\((?:aws|_github_token_aws) secretsmanager list-secrets\b.*?--query "([^"]+)"',
         script,
         re.DOTALL,
     )
