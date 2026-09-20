@@ -7,7 +7,9 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "sh" / "normalize_load_test_dockerfile.sh"
+SCRIPT = (
+    Path(__file__).resolve().parents[1] / "sh" / "normalize_load_test_dockerfile.sh"
+)
 
 
 class NormalizeLoadTestDockerfileTests(unittest.TestCase):
@@ -17,8 +19,7 @@ class NormalizeLoadTestDockerfileTests(unittest.TestCase):
             dockerfile = root / "crm" / "tests" / "load" / filename
             dockerfile.parent.mkdir(parents=True)
             dockerfile.write_text(
-                "FROM golang:1.25.8-alpine3.22 AS builder\n"
-                "FROM alpine:3.22\n",
+                "FROM golang:1.25.8-alpine3.22 AS builder\n" "FROM alpine:3.22\n",
                 encoding="utf-8",
             )
 
@@ -34,7 +35,10 @@ class NormalizeLoadTestDockerfileTests(unittest.TestCase):
     def assert_normalized(self, filename):
         result, contents = self.run_normalizer(filename)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("public.ecr.aws/docker/library/golang:1.25.8-alpine3.22 AS builder", contents)
+        self.assertIn(
+            "public.ecr.aws/docker/library/golang:1.25.8-alpine3.22 AS builder",
+            contents,
+        )
         self.assertIn("public.ecr.aws/docker/library/alpine:3.22", contents)
 
     def test_discovers_and_normalizes_current_lowercase_compose_path(self):
