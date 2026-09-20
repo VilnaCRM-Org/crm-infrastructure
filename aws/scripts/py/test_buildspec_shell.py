@@ -63,6 +63,23 @@ def load_buildspec(name, batch=True):
 
 
 class BuildspecShellTests(unittest.TestCase):
+    def test_only_mobile_lighthouse_gets_larger_compute_and_all_gates_are_required(self):
+        batch = load_buildspec("batch_lhci_leak", batch=False)["batch"]
+        self.assertFalse(batch["fast-fail"])
+        children = {child["identifier"]: child for child in batch["build-list"]}
+        self.assertEqual(
+            set(children), {"lighthouseDesktop", "lighthouseMobile", "memoryLeak"}
+        )
+        for name, child in children.items():
+            with self.subTest(child=name):
+                self.assertFalse(child["ignore-failure"])
+                self.assertEqual(
+                    child.get("env", {}),
+                    {"compute-type": "BUILD_GENERAL1_LARGE"}
+                    if name == "lighthouseMobile"
+                    else {},
+                )
+
     def test_lighthouse_report_selection_survives_independent_finally_shell(self):
         for mode in ("desktop", "mobile"):
             with self.subTest(mode=mode):

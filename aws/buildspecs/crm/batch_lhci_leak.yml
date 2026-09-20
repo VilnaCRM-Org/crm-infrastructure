@@ -6,6 +6,10 @@ batch:
       ignore-failure: false
 
     - identifier: lighthouseMobile
+      # Same-source TEST comparisons failed on Small/Medium and passed on Large.
+      # Keep the mobile audit budget unchanged; isolate sizing to this child.
+      env:
+        compute-type: BUILD_GENERAL1_LARGE
       buildspec: "./aws/buildspecs/crm/batches/lighthouse_mobile.yml"
       ignore-failure: false
 
