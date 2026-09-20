@@ -1,4 +1,4 @@
-"""Offline guard against CRM touching website-owned Terraform state."""
+"""Offline contracts for CRM stack ownership, quality gates, and deployment locking."""
 
 from pathlib import Path
 import re
@@ -155,7 +155,103 @@ class CrmStackOwnershipTests(unittest.TestCase):
             ).read_text()
             self.assertRegex(config, r'pipeline_type\s*=\s*"V2"')
             self.assertRegex(config, r'execution_mode\s*=\s*"QUEUED"')
-            self.assertIn("stage.value.input_artifacts[0]", config)
+            iterator = "action" if module == "crm" else "stage"
+            self.assertIn(f"{iterator}.value.input_artifacts[0]", config)
+
+    def test_crm_deploy_through_release_share_one_stage_lock(self):
+        config = (
+            ROOT / "terraform/app/modules/aws/codepipeline/crm/main.tf"
+        ).read_text()
+        # The two slices cover every configured action exactly once. Only core
+        # tests may run in another stage while an execution owns shared staging.
+        groups = re.findall(
+            r'name\s*=\s*"(Stage-[^"]+)"\s*'
+            r"actions\s*=\s*slice\(var.stages,\s*(\d+),\s*(1|length\(var.stages\))\)",
+            config,
+        )
+        self.assertEqual(
+            groups,
+            [
+                ("Stage-batch-unit-mutation-lint", "0", "1"),
+                ("Stage-deployment", "1", "length(var.stages)"),
+            ],
+        )
+        self.assertEqual(len(re.findall(r"\bstage\s*\{", config)), 1)  # Source only
+        self.assertEqual(config.count('dynamic "stage"'), 1)
+        self.assertRegex(
+            config,
+            r"content\s*\{\s*name\s*=\s*stage.value.name\s*"
+            r'dynamic "action"\s*\{\s*for_each\s*=\s*stage.value.actions',
+        )
+        self.assertRegex(config, r"run_order\s*=\s*action.key\s*\+\s*1")
+        self.assertRegex(config, r'execution_mode\s*=\s*"QUEUED"')
+
+        # Validate each environment's actual inputs against the grouping, not
+        # only the QUEUED flag (which cannot prevent overlap between stages).
+        for environment in ("test", "prod"):
+            variables = (
+                ROOT
+                / "terraform/app/stacks/ci-cd-infrastructure-crm/tfvars"
+                / f"{environment}.tfvars"
+            ).read_text()
+            actions = re.search(
+                r"ci_cd_crm_stage_input\s*=\s*\[(.*?)\n\]", variables, re.DOTALL
+            ).group(1)
+            names = re.findall(r'name\s*=\s*"([^"]+)"', actions)
+            with self.subTest(environment=environment):
+                self.assertEqual(names[:1], ["batch-unit-mutation-lint"])
+                self.assertEqual(
+                    list(enumerate(names[1:], start=1)),
+                    [
+                        (1, "deploy"),
+                        (2, "healthcheck"),
+                        (3, "batch-lhci-leak"),
+                        (4, "batch-pw-load"),
+                        (5, "release"),
+                    ],
+                )
+
+    def test_crm_stage_grouping_rejects_missing_or_reordered_gates(self):
+        variables = (
+            ROOT / "terraform/app/modules/aws/codepipeline/crm/variables.tf"
+        ).read_text()
+        self.assertRegex(
+            variables,
+            r'condition\s*=\s*join\(",",\s*var.stages\[\*\].name\)\s*==\s*'
+            r'"batch-unit-mutation-lint,deploy,healthcheck,batch-lhci-leak,batch-pw-load,release"',
+        )
+
+    def test_grouped_crm_actions_preserve_artifacts_batch_and_source_identity(self):
+        config = (
+            ROOT / "terraform/app/modules/aws/codepipeline/crm/main.tf"
+        ).read_text()
+        for field in ("category", "owner", "provider", "input_artifacts"):
+            self.assertRegex(config, rf"{field}\s*=\s*action.value.{field}")
+        self.assertRegex(
+            config, r"output_artifacts\s*=\s*\[action.value.output_artifacts\]"
+        )
+        self.assertRegex(config, r'name\s*=\s*"Action-\$\{action.value.name\}"')
+        for flag in ("CombineArtifacts", "BatchEnabled"):
+            self.assertRegex(
+                config,
+                rf'{flag}\s*=\s*startswith\(action.value.name, "batch"\) \? true : false',
+            )
+        self.assertRegex(
+            config,
+            r'ProjectName\s*=\s*action.value.provider == "CodeBuild" \? '
+            r'"\$\{var.project_name\}-\$\{action.value.name\}" : null',
+        )
+        self.assertRegex(
+            config,
+            r'PrimarySource\s*=\s*action.value.provider == "CodeBuild" && '
+            r"length\(action.value.input_artifacts\) > 1 \? action.value.input_artifacts\[0\] : null",
+        )
+        self.assertRegex(
+            config,
+            r'EnvironmentVariables\s*=\s*action.value.provider == "CodeBuild" \? '
+            r'jsonencode\(\[\s*\{\s*name\s*=\s*"CRM_SOURCE_VERSION"\s*'
+            r'value\s*=\s*"#\{CrmSourceVariables.CommitId\}"\s*type\s*=\s*"PLAINTEXT"',
+        )
 
 
 if __name__ == "__main__":

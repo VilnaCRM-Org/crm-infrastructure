@@ -186,10 +186,11 @@ class TokenLoaderTests(unittest.TestCase):
         expiry = datetime.now(timezone.utc) + timedelta(seconds=600)
         result = self.run_loader(
             {"token": "synthetic-near-expiry", "expires_at": expiry.isoformat()},
-            settings=self.freshness(GITHUB_TOKEN_WAIT_SECONDS="1"),
+            settings=self.freshness(GITHUB_TOKEN_WAIT_SECONDS="0"),
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Timed out", result.stdout)
+        self.assertIn("insufficient remaining lifetime", result.stdout)
+        self.assertEqual(len(result.calls), 2)
         self.assertNotIn("Child received exact token", result.stdout)
 
     def test_missing_expiry_is_rejected_only_in_freshness_mode(self):
