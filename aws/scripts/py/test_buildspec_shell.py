@@ -36,10 +36,13 @@ printf 'env:%s\n' "$SYNTHETIC_PHASE" >> "$SYNTHETIC_TRACE"
 BATCH_HELPER = r"""
 [[ -n ${BASH_VERSION:-} ]]
 [[ $PWD == "$CODEBUILD_SRC_DIR/crm" ]]
-[[ $1 == "$SYNTHETIC_TARGET" ]]
+[[ $1 == "$SYNTHETIC_TARGET" || $1 == "${SYNTHETIC_SECOND_TARGET:-}" ]]
 bash -c '[[ $SYNTHETIC_EXPORTED == "synthetic exported" ]]'
 printf 'helper:%s\n' "$1" >> "$SYNTHETIC_TRACE"
 export BUILD_ONLY=must-not-be-needed-by-finally
+if [[ ${SYNTHETIC_FAIL_TARGET:-} == "$1" ]]; then
+  exit 37
+fi
 # A failing command must stop the Bash heredoc before the success marker.
 (exit "$SYNTHETIC_BUILD_EXIT")
 printf 'build-complete\n' >> "$SYNTHETIC_TRACE"
@@ -128,13 +131,16 @@ class BuildspecShellTests(unittest.TestCase):
                     self.assertEqual(commands[1].count(helper), 1)
                 self.assertNotIn("install_packages.sh", commands[1])
 
-    def run_stubbed_phases(self, name, build_exit=None):
+    def run_stubbed_phases(self, name, build_exit=None, fail_target=None):
         buildspec = load_buildspec(name)
         phase = buildspec["phases"]["build"]
         self.assertEqual(len(phase["commands"]), 1)
         self.assert_bash_heredoc(phase["commands"][0])
         self.assert_bash_heredoc(phase["finally"][0])
         helper, target = BATCH_TARGETS[name]
+        targets = [target]
+        if name == "load_test":
+            targets.append("test-load-signup")
         self.assertIn(helper, phase["commands"][0])
         with tempfile.TemporaryDirectory(prefix="crm-shell-test-") as temporary:
             root = Path(temporary)
@@ -153,6 +159,8 @@ class BuildspecShellTests(unittest.TestCase):
                 "SCRIPT_DIR": "aws/scripts",
                 "SYNTHETIC_TRACE": str(trace),
                 "SYNTHETIC_TARGET": target,
+                "SYNTHETIC_SECOND_TARGET": targets[1] if len(targets) > 1 else "",
+                "SYNTHETIC_FAIL_TARGET": fail_target or "",
                 "SYNTHETIC_BUILD_EXIT": str(build_exit or 0),
             }
 
@@ -169,11 +177,17 @@ class BuildspecShellTests(unittest.TestCase):
             expected = []
             if build_exit is not None:
                 result = execute(phase["commands"][0], "build")
+                expected_build_status = 37 if fail_target else build_exit
                 self.assertEqual(
-                    result.returncode, build_exit, result.stdout + result.stderr
+                    result.returncode,
+                    expected_build_status,
+                    result.stdout + result.stderr,
                 )
-                expected = ["env:build", f"helper:{target}"]
-                if build_exit == 0:
+                expected = ["env:build"]
+                for current_target in targets:
+                    expected.append(f"helper:{current_target}")
+                    if fail_target == current_target or build_exit != 0:
+                        break
                     expected.append("build-complete")
                 self.assertEqual(trace.read_text().splitlines(), expected)
 
@@ -202,6 +216,12 @@ class BuildspecShellTests(unittest.TestCase):
         for name in BATCH_TARGETS:
             with self.subTest(buildspec=name):
                 self.run_stubbed_phases(name)
+
+    def test_load_batch_runs_signup_after_homepage_and_propagates_signup_failure(self):
+        self.run_stubbed_phases("load_test", build_exit=0)
+        self.run_stubbed_phases(
+            "load_test", build_exit=0, fail_target="test-load-signup"
+        )
 
 
 if __name__ == "__main__":
