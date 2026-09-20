@@ -66,9 +66,7 @@ class BuildspecShellTests(unittest.TestCase):
     def test_lighthouse_report_selection_survives_independent_finally_shell(self):
         for mode in ("desktop", "mobile"):
             with self.subTest(mode=mode):
-                variables = load_buildspec(f"lighthouse_{mode}")["env"][
-                    "variables"
-                ]
+                variables = load_buildspec(f"lighthouse_{mode}")["env"]["variables"]
                 self.assertEqual(variables[f"LHCI_{mode.upper()}_RUN"], "1")
                 self.assertEqual(
                     [
