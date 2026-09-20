@@ -63,7 +63,9 @@ def load_buildspec(name, batch=True):
 
 
 class BuildspecShellTests(unittest.TestCase):
-    def test_only_mobile_lighthouse_gets_larger_compute_and_all_gates_are_required(self):
+    def test_only_mobile_lighthouse_gets_larger_compute_and_all_gates_are_required(
+        self,
+    ):
         batch = load_buildspec("batch_lhci_leak", batch=False)["batch"]
         self.assertFalse(batch["fast-fail"])
         children = {child["identifier"]: child for child in batch["build-list"]}
@@ -75,9 +77,11 @@ class BuildspecShellTests(unittest.TestCase):
                 self.assertFalse(child["ignore-failure"])
                 self.assertEqual(
                     child.get("env", {}),
-                    {"compute-type": "BUILD_GENERAL1_LARGE"}
-                    if name == "lighthouseMobile"
-                    else {},
+                    (
+                        {"compute-type": "BUILD_GENERAL1_LARGE"}
+                        if name == "lighthouseMobile"
+                        else {}
+                    ),
                 )
 
     def test_lighthouse_report_selection_survives_independent_finally_shell(self):
