@@ -1,12 +1,15 @@
 batch:
   fast-fail: false
   build-list:
-    - identifier: mutation
-      buildspec: "./aws/buildspecs/crm/batches/mutation.yml"
-      ignore-failure: false
-
+    # AWS mutation is deferred pending bounded runtime/memory validation:
+    # https://github.com/VilnaCRM-Org/crm/issues/285
+    # GitHub mutation checks remain enabled. Keep all other deployment gates.
     - identifier: unit
       buildspec: "./aws/buildspecs/crm/batches/unit.yml"
+      # Full coverage with two Jest workers exceeded the Small runner in TEST.
+      # Lint and integration retain their project defaults.
+      env:
+        compute-type: BUILD_GENERAL1_MEDIUM
       ignore-failure: false
 
     - identifier: lint

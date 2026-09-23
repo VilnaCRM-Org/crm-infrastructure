@@ -27,7 +27,9 @@ resource "aws_cloudfront_response_headers_policy" "response_headers" {
       override   = true
     }
     content_security_policy {
-      content_security_policy = "frame-ancestors 'none'; default-src 'self'; img-src 'self'; connect-src 'self' https://www.google-analytics.com; script-src 'self' https://www.googletagmanager.com 'sha256-wrP1y/XyBiQiNtWvqeo56CoSUTnjHRpOzs4kag+stYs='; style-src 'self' 'unsafe-inline'; font-src 'self' ${var.domain_name}/ data:; object-src 'none'"
+      # Backend infrastructure is not provisioned yet; retain the application's
+      # explicit localhost API origins without opening arbitrary destinations.
+      content_security_policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:3000 http://localhost:8080 http://localhost:4000; manifest-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
       override                = true
     }
   }
@@ -46,11 +48,6 @@ resource "aws_cloudfront_response_headers_policy" "response_headers" {
       header   = "Cross-Origin-Embedder-Policy"
       override = true
       value    = "require-corp"
-    }
-    items {
-      header   = "Cache-Control"
-      override = true
-      value    = "max-age=31536000"
     }
   }
 }

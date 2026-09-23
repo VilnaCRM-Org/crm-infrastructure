@@ -1,18 +1,26 @@
-from dotenv import load_dotenv
 import json
 import subprocess
 import os
 
-CLOUDFRONT_REGION = os.environ["CLOUDFRONT_REGION"]
+from deploy_content import find_project_distributions
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+
+    def load_dotenv(_path):
+        return False
+
 
 load_dotenv("./.terraform.env")
 
+CLOUDFRONT_REGION = os.environ.get("CLOUDFRONT_REGION", "")
 config_filename = "distribution_config.json"
 continuous_deployment_id = os.getenv("CONTINUOUS_DEPLOYMENT_ID")
 production_distribution_id = os.getenv("PRODUCTION_DISTRIBUTION_ID")
 
 
-def fetch_production_distribution_config():
+def fetch_production_distribution_config(distribution_id=None):
     print("Fetching production distribution configuration...")
     config_result = subprocess.check_output(
         [
@@ -20,7 +28,7 @@ def fetch_production_distribution_config():
             "cloudfront",
             "get-distribution-config",
             "--id",
-            production_distribution_id,
+            distribution_id or production_distribution_id,
             "--region",
             CLOUDFRONT_REGION,
             "--no-cli-pager",
@@ -31,7 +39,7 @@ def fetch_production_distribution_config():
     return config_json
 
 
-def update_production_distribution_config(config_json):
+def update_production_distribution_config(config_json, distribution_id=None):
     print("Updating production distribution configuration...")
     etag = config_json["ETag"]
     config_json["DistributionConfig"][
@@ -47,7 +55,7 @@ def update_production_distribution_config(config_json):
             "cloudfront",
             "update-distribution",
             "--id",
-            production_distribution_id,
+            distribution_id or production_distribution_id,
             "--distribution-config",
             f"file://{config_filename}",
             "--region",
@@ -57,7 +65,7 @@ def update_production_distribution_config(config_json):
         ]
     )
     print(
-        f"Updated production distribution configuration with ID {production_distribution_id}"
+        f"Updated production distribution configuration with ID {distribution_id or production_distribution_id}"
     )
 
 
@@ -68,11 +76,31 @@ def main():
             "No continuous deployment policy configured, skipping distribution update"
         )
         return
-    if not production_distribution_id:
-        print("No production distribution id configured, skipping distribution update")
-        return
-    production_config = fetch_production_distribution_config()
-    update_production_distribution_config(production_config)
+    configured_distribution_id = production_distribution_id
+    if not configured_distribution_id:
+        bucket_name = os.environ.get("BUCKET_NAME")
+        if not bucket_name:
+            raise RuntimeError(
+                "BUCKET_NAME is required to identify the CRM primary distribution"
+            )
+        distributions = find_project_distributions(bucket_name)
+        production = distributions["production"]
+        if not production:
+            raise RuntimeError("Could not identify the CRM primary distribution")
+        configured_distribution_id = production["Id"]
+    else:
+        bucket_name = os.environ.get("BUCKET_NAME")
+        if not bucket_name:
+            raise RuntimeError(
+                "BUCKET_NAME is required to validate the CRM primary distribution"
+            )
+        production = find_project_distributions(bucket_name)["production"]
+        if not production or production["Id"] != configured_distribution_id:
+            raise RuntimeError(
+                "PRODUCTION_DISTRIBUTION_ID does not match the CRM primary distribution"
+            )
+    production_config = fetch_production_distribution_config(configured_distribution_id)
+    update_production_distribution_config(production_config, configured_distribution_id)
     print("Main function completed.")
 
 

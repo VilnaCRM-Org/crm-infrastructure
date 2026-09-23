@@ -18,6 +18,16 @@ variable "source_repo_branch" {
   type        = string
 }
 
+variable "crm_content_repo_name" {
+  description = "CRM application repository captured in each pipeline execution"
+  type        = string
+}
+
+variable "crm_repo_branch" {
+  description = "CRM application branch that triggers content deployments"
+  type        = string
+}
+
 variable "region" {
   description = "Region for this project"
   type        = string
@@ -65,7 +75,7 @@ variable "tags" {
 }
 
 variable "stages" {
-  description = "List of Map containing information about the stages of the CodePipeline"
+  description = "Ordered CRM actions: independent core tests, then one exclusive deployment-through-release stage"
   type = list(object({
     name             = string
     category         = string
@@ -74,6 +84,11 @@ variable "stages" {
     input_artifacts  = list(string)
     output_artifacts = string
   }))
+
+  validation {
+    condition     = join(",", var.stages[*].name) == "batch-unit-mutation-lint,deploy,healthcheck,batch-lhci-leak,batch-pw-load,release"
+    error_message = "CRM actions must retain core tests, deploy, healthcheck, Lighthouse/memory, Playwright/load, and release in that order."
+  }
 }
 
 variable "cloudwatch_alerts_sns_topic_arn" {

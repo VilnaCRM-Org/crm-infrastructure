@@ -21,8 +21,9 @@ module "ci_cd_crm_codepipeline_iam_role" {
   project_name               = var.ci_cd_crm_project_name
   codepipeline_iam_role_name = "${var.ci_cd_crm_project_name}-codepipeline-role"
 
-  source_repo_owner = var.source_repo_owner
-  source_repo_name  = var.source_repo_name
+  source_repo_owner     = var.source_repo_owner
+  source_repo_name      = var.source_repo_name
+  crm_content_repo_name = var.crm_content_repo_name
 
   crm_bucket_name = var.bucket_name
 
@@ -63,11 +64,13 @@ module "ci_cd_crm_codebuild" {
 module "ci_cd_crm_codepipeline" {
   source = "../../modules/aws/codepipeline/crm"
 
-  project_name       = var.ci_cd_crm_project_name
-  source_repo_owner  = var.source_repo_owner
-  source_repo_name   = var.source_repo_name
-  source_repo_branch = var.source_repo_branch
-  detect_changes     = "false"
+  project_name          = var.ci_cd_crm_project_name
+  source_repo_owner     = var.source_repo_owner
+  source_repo_name      = var.source_repo_name
+  source_repo_branch    = var.source_repo_branch
+  crm_content_repo_name = var.crm_content_repo_name
+  crm_repo_branch       = var.crm_repo_branch
+  detect_changes        = "false"
 
   lambda_python_version                 = var.lambda_python_version
   lambda_reserved_concurrent_executions = var.lambda_reserved_concurrent_executions

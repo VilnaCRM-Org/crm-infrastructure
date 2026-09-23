@@ -1,6 +1,8 @@
 version: 0.2
 
 env:
+  # The Alpine DinD image has sh only until install_packages.sh installs Bash.
+  shell: /bin/sh
   variables:
     ACCOUNT_ID: $ACCOUNT_ID
     ENVIRONMENT: $ENVIRONMENT
@@ -8,22 +10,34 @@ env:
     LHCI_REPORTS_BUCKET: $LHCI_REPORTS_BUCKET
     CRM_GIT_REPOSITORY_LINK: $CRM_GIT_REPOSITORY_LINK
     DIND: "1"
+    LHCI_DESKTOP_RUN: "1"
 
 phases:
   install:
     commands:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
+      - '/bin/sh "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/install_packages.sh"'
+      - |
+        bash -e <<'BASH'
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/crm_installation.sh"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/setup_docker.sh"
+        BASH
 
   build:
     commands:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
-      - "echo 'Running Lighthouse Desktop tests with new batch script'"
-      - "cd ${CODEBUILD_SRC_DIR}/crm"
-      - ". ${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_lhci_leak.sh test-lighthouse-desktop"
+      - |
+        bash -e <<'BASH'
+        cd "${CODEBUILD_SRC_DIR}/crm"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
+        echo "Running Lighthouse Desktop checks"
+        . "${CODEBUILD_SRC_DIR}/crm/scripts/ci/batch_lhci_leak.sh" test-lighthouse-desktop
+        BASH
     finally:
-      - ". ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+      - |
+        bash -e <<'BASH'
+        cd "${CODEBUILD_SRC_DIR}/crm"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/create_env.sh"
+        . "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/sh/run_reports.sh"
+        BASH
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"
       - "printf 'lighthouse desktop complete\n' > ${CODEBUILD_SRC_DIR}/codepipeline-artifacts/lighthouse-desktop.txt"
 

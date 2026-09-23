@@ -14,6 +14,7 @@ data "aws_iam_policy_document" "cloudfront_policy_doc" {
     actions = [
       "cloudfront:CreateResponseHeadersPolicy",
       "cloudfront:GetResponseHeadersPolicy",
+      "cloudfront:UpdateResponseHeadersPolicy",
       "cloudfront:DeleteResponseHeadersPolicy"
     ]
     resources = [

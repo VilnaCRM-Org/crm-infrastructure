@@ -1,0 +1,47 @@
+name: Deployment regression tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install mocked AWS test dependency
+        run: python -m pip install boto3 PyYAML
+      - name: Test SPA delivery, source identity and blue-green promotion
+        run: python -m unittest discover -s aws/scripts/py -p 'test_*.py' -v
+      - name: Test CloudFront SPA routing
+        run: node --test terraform/app/modules/aws/cloudfront/routing.test.cjs
+
+  alpine-batch-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test bootstrap in the production Alpine DinD image
+        run: |
+          docker run --rm --entrypoint /bin/sh \
+            -v "$PWD:/src:ro" -w /src \
+            public.ecr.aws/docker/library/docker:28.1.1-dind-alpine3.21 \
+            -ec '
+              if command -v bash; then
+                echo "Expected a clean Alpine image without Bash" >&2
+                exit 1
+              fi
+              /bin/sh aws/scripts/sh/install_packages.sh
+              apk add --no-cache python3 py3-yaml
+              PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+                -s aws/scripts/py -p test_buildspec_shell.py -v
+            '

@@ -1,11 +1,28 @@
 version: 0.2
 
+env:
+  shell: bash
+
 phases:
   install:
     runtime-versions:
       python: $PYTHON_VERSION
     commands:
-      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/origin_change.py"
+      - |
+        if [ "${ROLLBACK:-false}" = "true" ]; then
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/origin_change.py"
+        else
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/origin_change.py" \
+            --deployment-manifest "${CODEBUILD_SRC_DIR_DeployOutput:?Missing deployment artifact}/codepipeline-artifacts/deployment.json"
+        fi
+      - "python3 ${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/cache_invalidation.py"
+      - |
+        if [ "${ROLLBACK:-false}" = "true" ]; then
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/spa_healthcheck.py" --url "https://${BUCKET_NAME}"
+        else
+          python3 "${CODEBUILD_SRC_DIR}/${SCRIPT_DIR}/py/spa_healthcheck.py" --url "https://${BUCKET_NAME}" \
+            --deployment-manifest "${CODEBUILD_SRC_DIR_DeployOutput:?Missing deployment artifact}/codepipeline-artifacts/deployment.json"
+        fi
   build:
     commands:
       - "mkdir -p ${CODEBUILD_SRC_DIR}/codepipeline-artifacts"

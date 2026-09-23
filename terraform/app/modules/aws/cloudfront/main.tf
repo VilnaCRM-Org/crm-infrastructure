@@ -72,12 +72,14 @@ resource "aws_cloudfront_distribution" "this" {
 
     viewer_protocol_policy = "redirect-to-https"
 
-    min_ttl     = var.cloudfront_configuration.min_ttl
-    default_ttl = var.cloudfront_configuration.default_ttl
-    max_ttl     = var.cloudfront_configuration.max_ttl
+    # TTLs belong to the attached cache policy, not legacy behavior fields.
 
     compress = true
 
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.routing_function.arn
+    }
   }
 
   price_class = var.cloudfront_configuration.price_class
@@ -109,6 +111,11 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   wait_for_deployment = true
+
+  # Release reconciliation owns the active bucket; Terraform owns policy attachment.
+  lifecycle {
+    ignore_changes = [origin]
+  }
 }
 
 resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
@@ -180,12 +187,14 @@ resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
 
     viewer_protocol_policy = "redirect-to-https"
 
-    min_ttl     = var.cloudfront_configuration.min_ttl
-    default_ttl = var.cloudfront_configuration.default_ttl
-    max_ttl     = var.cloudfront_configuration.max_ttl
+    # TTLs belong to the attached cache policy, not legacy behavior fields.
 
     compress = true
 
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.routing_function.arn
+    }
   }
 
   price_class = var.cloudfront_configuration.price_class
@@ -217,4 +226,8 @@ resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
   }
 
   wait_for_deployment = true
+
+  lifecycle {
+    ignore_changes = [origin]
+  }
 }
