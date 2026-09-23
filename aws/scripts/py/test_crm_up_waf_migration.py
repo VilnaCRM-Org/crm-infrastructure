@@ -34,7 +34,9 @@ class CrmUpWafMigrationTests(unittest.TestCase):
             command for command in cls.commands if "migration_in_progress=" in command
         )
 
-    def execute(self, status="false", parser_exit=0, pipeline_exit=0, revision="abc123"):
+    def execute(
+        self, status="false", parser_exit=0, pipeline_exit=0, revision="abc123"
+    ):
         environment = {
             "PATH": os.defpath,
             "MIGRATION_STATUS": status,
