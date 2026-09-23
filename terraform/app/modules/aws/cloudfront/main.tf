@@ -69,9 +69,7 @@ resource "aws_cloudfront_distribution" "this" {
 
     viewer_protocol_policy = "redirect-to-https"
 
-    min_ttl     = var.cloudfront_configuration.min_ttl
-    default_ttl = var.cloudfront_configuration.default_ttl
-    max_ttl     = var.cloudfront_configuration.max_ttl
+    # TTLs belong to the attached cache policy, not legacy behavior fields.
 
     compress = true
 
@@ -186,9 +184,7 @@ resource "aws_cloudfront_distribution" "staging_cloudfront_distribution" {
 
     viewer_protocol_policy = "redirect-to-https"
 
-    min_ttl     = var.cloudfront_configuration.min_ttl
-    default_ttl = var.cloudfront_configuration.default_ttl
-    max_ttl     = var.cloudfront_configuration.max_ttl
+    # TTLs belong to the attached cache policy, not legacy behavior fields.
 
     compress = true
 
