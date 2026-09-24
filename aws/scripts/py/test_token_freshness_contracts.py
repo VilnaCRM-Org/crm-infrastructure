@@ -11,6 +11,10 @@ ROOT = Path(__file__).resolve().parents[3]
 
 class TokenFreshnessContractTests(unittest.TestCase):
     def test_rotation_is_main_only_with_trusted_checkout_and_existing_authority(self):
+        schedules = {
+            "test": [{"cron": "11 * * * *"}, {"cron": "41 * * * *"}],
+            "prod": [{"cron": "26 * * * *"}, {"cron": "56 * * * *"}],
+        }
         for environment in ("test", "prod"):
             with self.subTest(environment=environment):
                 workflow = yaml.load(
@@ -27,10 +31,7 @@ class TokenFreshnessContractTests(unittest.TestCase):
                     set(triggers),
                     {"push", "schedule", "workflow_dispatch", "repository_dispatch"},
                 )
-                self.assertEqual(
-                    triggers["schedule"],
-                    [{"cron": "0 * * * *"}, {"cron": "50 * * * *"}],
-                )
+                self.assertEqual(triggers["schedule"], schedules[environment])
                 self.assertEqual(
                     triggers["repository_dispatch"],
                     {"types": [f"rotate_token_{environment}"]},
@@ -45,7 +46,7 @@ class TokenFreshnessContractTests(unittest.TestCase):
                     job["concurrency"],
                     {
                         "group": f"github-token-rotation-{environment}",
-                        "cancel-in-progress": "${{ github.event_name == 'workflow_dispatch' }}",
+                        "cancel-in-progress": "false",
                     },
                 )
                 checkouts = [

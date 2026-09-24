@@ -55,13 +55,9 @@ _github_token_load() {
       echo "Error: Timed out waiting for a fresh GitHub token."
       return 1
     fi
-    # Reselect on each poll in case rotation selected a newly created secret.
-    if ! SECRET_ID=$(_github_token_aws secretsmanager list-secrets --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" --output text); then
+    # Reselect on each poll. JSON evaluates the selector after all pages aggregate.
+    if ! SECRET_ID=$(_github_token_aws secretsmanager list-secrets --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" --output json | jq -ers 'if length == 1 and (.[0] | type == "string") and (.[0] | length > 0) then .[0] else empty end'); then
       echo "Error: GitHub token secret lookup failed or exceeded its time limit."
-      return 1
-    fi
-    if [[ -z $SECRET_ID || $SECRET_ID == "None" ]]; then
-      echo "Error: No active GitHub token secret found."
       return 1
     fi
     if ! SECRET_VALUE=$(_github_token_aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query 'SecretString' --output text); then

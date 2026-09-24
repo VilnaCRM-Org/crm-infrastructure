@@ -1,4 +1,6 @@
 #!/bin/bash
+# Never trace credentials, even if the caller enables shell tracing.
+set +x
 set -euo pipefail
 
 # Check required environment variables
@@ -22,7 +24,7 @@ print(jwt.encode(
 ")
 
 # Get installation ID
-response=$(curl -s \
+response=$(curl --fail --silent --show-error --max-time 30 --retry 2 \
   -H "Authorization: Bearer $jwt" \
   -H "Accept: application/vnd.github.v3+json" \
   https://api.github.com/app/installations)
@@ -35,7 +37,7 @@ if [ -z "$installation_id" ] || [ "$installation_id" = "null" ]; then
 fi
 
 # Create an installation access token
-token_response=$(curl -s -X POST \
+token_response=$(curl --fail --silent --show-error --max-time 30 --retry 2 -X POST \
   -H "Authorization: Bearer $jwt" \
   -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/app/installations/$installation_id/access_tokens")
@@ -53,6 +55,16 @@ if [ -z "$TOKEN_EXPIRATION" ] || [ "$TOKEN_EXPIRATION" = "null" ]; then
   exit 1
 fi
 
+# A successful API response must still leave enough time for a downstream plan.
+if ! expiration_epoch=$(date -u -d "$TOKEN_EXPIRATION" +%s 2>/dev/null); then
+  echo "Invalid GitHub token expiration time"
+  exit 1
+fi
+if (( expiration_epoch - $(date -u +%s) < 2700 )); then
+  echo "GitHub token has less than 45 minutes of validity"
+  exit 1
+fi
+
 # Create a JSON object with the token and expiration time
 if ! SECRET_JSON=$(jq -n --arg token "$NEW_TOKEN" --arg expires_at "$TOKEN_EXPIRATION" \
   '{token: $token, expires_at: $expires_at}'); then
@@ -61,13 +73,12 @@ if ! SECRET_JSON=$(jq -n --arg token "$NEW_TOKEN" --arg expires_at "$TOKEN_EXPIR
 fi
 
 # Select the same newest active secret as retrieve_token.sh.
-SECRET_ID=$(aws secretsmanager list-secrets \
+# JSON evaluates the selector after all Secrets Manager pages aggregate.
+if ! SECRET_ID=$(aws secretsmanager list-secrets \
   --region "${AWS_REGION}" \
   --query "sort_by(SecretList[?starts_with(Name, 'crm-github-token-') && DeletedDate==null], &CreatedDate)[-1].Name" \
-  --output text)
-
-if [ -z "$SECRET_ID" ] || [ "$SECRET_ID" = "None" ]; then
-  echo "No active secret found with prefix 'crm-github-token-"
+  --output json | jq -ers 'if length == 1 and (.[0] | type == "string") and (.[0] | length > 0) then .[0] else empty end'); then
+  echo "No active secret found with prefix 'crm-github-token-'"
   exit 1
 fi
 

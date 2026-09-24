@@ -7,9 +7,91 @@ on:
 env:
   SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
+permissions:
+  contents: read
+
 jobs:
   infracost:
     name: run infracost
+    needs: [fork-cost-policy, internal-infracost]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the applicable cost check to pass
+        env:
+          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          FORK_RESULT: ${{ needs.fork-cost-policy.result }}
+          INTERNAL_RESULT: ${{ needs.internal-infracost.result }}
+        run: |
+          if [ "$IS_INTERNAL" = "true" ]; then
+            test "$INTERNAL_RESULT" = "success"
+          else
+            test "$FORK_RESULT" = "success"
+          fi
+
+  fork-cost-policy:
+    name: Check fork cost inputs
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork PR for read-only comparison
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require a trusted cost estimate for Terraform changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import PurePosixPath
+          import subprocess
+          import sys
+
+          head = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"], text=True
+          ).strip()
+          if head != os.environ["HEAD_SHA"]:
+              sys.exit("PR head changed; rerun the cost check.")
+          # Disable rename detection so both old and new paths are checked.
+          # A missing commit or merge base fails closed via check_output.
+          changed = subprocess.check_output([
+              "git", "diff", "--name-only", "--no-renames", "-z",
+              f'{os.environ["BASE_SHA"]}...{head}',
+          ]).decode("utf-8", errors="surrogateescape").split("\0")
+          cost_paths = []
+          for path in filter(None, changed):
+              name = PurePosixPath(path).name.lower()
+              if (
+                  path.startswith("terraform/")
+                  or name.endswith((
+                      ".tf", ".tf.json", ".tfvars", ".tfvars.json",
+                      ".hcl", ".tfplan",
+                  ))
+                  or name == "plan.json"
+                  or (
+                      "infracost" in name
+                      and name.endswith((".yml", ".yaml", ".json"))
+                      and not path.startswith(".github/workflows/")
+                  )
+              ):
+                  cost_paths.append(path)
+          if cost_paths:
+              print("Terraform cost inputs changed:", repr(cost_paths))
+              sys.exit(
+                  "Fork PRs cannot use INFRACOST_API_KEY. "
+                  "A trusted internal PR must run the cost estimate."
+              )
+          print("No Terraform cost inputs changed; no Infracost key required.")
+          PY
+
+  internal-infracost:
+    name: Estimate internal PR costs
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,22 +108,22 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Checkout base branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: "${{ github.event.pull_request.base.ref }}"
 
       - name: Generate Infracost cost estimate baseline
         run: |
-          infracost breakdown --path=${TF_ROOT} \
+          infracost breakdown --path="${TF_ROOT}" \
                               --format=json \
                               --out-file=/tmp/infracost-base.json
 
       - name: Checkout PR branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Generate Infracost diff
         run: |
-          infracost diff --path=${TF_ROOT} \
+          infracost diff --path="${TF_ROOT}" \
                           --format=json \
                           --compare-to=/tmp/infracost-base.json \
                           --out-file=/tmp/infracost.json
@@ -49,7 +131,7 @@ jobs:
       - name: Post Infracost comment
         run: |
           infracost comment github --path=/tmp/infracost.json \
-                                   --repo=$GITHUB_REPOSITORY \
+                                   --repo="$GITHUB_REPOSITORY" \
                                    --github-token=${{github.token}} \
                                    --pull-request=${{github.event.pull_request.number}} \
                                    --behavior=update

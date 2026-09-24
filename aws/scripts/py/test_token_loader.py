@@ -39,7 +39,9 @@ if operation == os.environ.get("SYNTHETIC_FAIL"):
 if operation == os.environ.get("SYNTHETIC_SLOW"):
     time.sleep(10)
 if operation == "list-secrets":
-    print("crm-github-token-synthetic")
+    if not any(a == "--output" and b == "json" for a, b in zip(sys.argv, sys.argv[1:])):
+        sys.exit(99)
+    print(os.environ["SYNTHETIC_SELECTOR_JSON"])
 elif operation == "get-secret-value":
     secrets = json.loads(os.environ["SYNTHETIC_SECRETS"])
     secret = secrets[min(previous_reads, len(secrets) - 1)]
@@ -50,7 +52,10 @@ else:
 
 
 class TokenLoaderTests(unittest.TestCase):
-    def run_loader(self, secret, *, sequence=None, settings=None, trace_shell=False):
+    def run_loader(
+        self, secret, *, sequence=None, settings=None, trace_shell=False,
+        selector_json=None
+    ):
         # Do not inherit credentials or a pre-exported GITHUB_TOKEN from the host.
         with tempfile.TemporaryDirectory() as directory:
             stub = Path(directory) / "aws"
@@ -63,6 +68,11 @@ class TokenLoaderTests(unittest.TestCase):
                 "SYNTHETIC_SECRETS": json.dumps(sequence or [secret]),
                 "SYNTHETIC_EXPECTED_TOKEN_JSON": json.dumps(
                     secret.get("token", "") if isinstance(secret, dict) else ""
+                ),
+                "SYNTHETIC_SELECTOR_JSON": (
+                    selector_json
+                    if selector_json is not None
+                    else json.dumps("crm-github-token-synthetic")
                 ),
                 "SYNTHETIC_TRACE": str(trace),
                 **(settings or {}),
@@ -102,6 +112,17 @@ class TokenLoaderTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Child received exact token", result.stdout)
         self.assertNotIn(token, result.stdout + result.stderr)
+
+    def test_secret_selector_requires_one_nonempty_json_string(self):
+        for selected in ("null", "[]", "{}", '""', '"one"\n"two"', "{"):
+            with self.subTest(selected=selected):
+                result = self.run_loader(
+                    {"token": "synthetic-token"}, selector_json=selected
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("secret lookup failed", result.stdout)
+                self.assertEqual(len(result.calls), 1)
+                self.assertNotIn("synthetic-token", result.stdout + result.stderr)
 
     def test_opaque_tokens_have_no_prefix_or_length_requirement(self):
         for token in ["x", "synthetic.v2_token-+/=", "null"]:
