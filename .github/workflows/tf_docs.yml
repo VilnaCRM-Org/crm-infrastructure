@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Require the applicable docs check to pass
         env:
-          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]' }}
           FORK_RESULT: ${{ needs.fork-terraform-docs.result }}
           INTERNAL_RESULT: ${{ needs.internal-terraform-docs.result }}
         run: |
@@ -26,7 +26,7 @@ jobs:
           fi
 
   fork-terraform-docs:
-    if: github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,7 @@ jobs:
           fail-on-diff: "true"
 
   internal-terraform-docs:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     permissions:
       contents: write
     runs-on: ubuntu-latest
