@@ -15,6 +15,10 @@ TRUSTED_INTERNAL = (
     "github.event.pull_request.user.login != 'dependabot[bot]'"
 )
 FORK = "github.event.pull_request.head.repo.full_name != github.repository"
+DEPENDABOT = (
+    "github.event.pull_request.head.repo.full_name == github.repository && "
+    "github.event.pull_request.user.login == 'dependabot[bot]'"
+)
 
 
 def workflow(name):
@@ -69,8 +73,14 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
             checkout["ref"],
             "refs/pull/${{ github.event.pull_request.number }}/head",
         )
+        dependabot = jobs["dependabot-cost-policy"]
+        self.assertEqual(dependabot["if"], DEPENDABOT)
+        self.assertNotIn("permissions", dependabot)
+        self.assertNotIn("secrets.", str(dependabot))
+        self.assertNotIn("infracost/actions", str(dependabot))
+        self.assertEqual(dependabot["steps"][0]["with"], checkout)
         internal = jobs["internal-infracost"]
-        self.assertEqual(internal["if"], INTERNAL)
+        self.assertEqual(internal["if"], TRUSTED_INTERNAL)
         self.assertEqual(internal["permissions"]["pull-requests"], "write")
         self.assertIn("secrets.INFRACOST_API_KEY", str(internal))
         commands = str(internal["steps"])
@@ -107,25 +117,50 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         ):
             job = workflow(name)["jobs"][gate]
             self.assertEqual(job["if"], "always()")
-            self.assertEqual(len(job["needs"]), 2)
             self.assertNotIn("permissions", job)
             step = job["steps"][0]
-            self.assertEqual(step["env"]["IS_INTERNAL"], "${{ " + INTERNAL + " }}")
-            for internal in ("true", "false"):
+            if name == "infracost.yml":
+                self.assertEqual(
+                    job["needs"],
+                    [
+                        "fork-cost-policy",
+                        "dependabot-cost-policy",
+                        "internal-infracost",
+                    ],
+                )
+                self.assertEqual(
+                    step["env"]["IS_INTERNAL"], "${{ " + TRUSTED_INTERNAL + " }}"
+                )
+                self.assertEqual(
+                    step["env"]["IS_DEPENDABOT"], "${{ " + DEPENDABOT + " }}"
+                )
+                routes = (
+                    ("internal", "true", "false", "INTERNAL_RESULT"),
+                    ("dependabot", "false", "true", "DEPENDABOT_RESULT"),
+                    ("fork", "false", "false", "FORK_RESULT"),
+                )
+            else:
+                self.assertEqual(len(job["needs"]), 2)
+                self.assertEqual(step["env"]["IS_INTERNAL"], "${{ " + INTERNAL + " }}")
+                routes = (
+                    ("internal", "true", "false", "INTERNAL_RESULT"),
+                    ("fork", "false", "false", "FORK_RESULT"),
+                )
+            for route, is_internal, is_dependabot, selected_result in routes:
                 for status in ("success", "failure", "cancelled", "skipped"):
-                    with self.subTest(workflow=name, internal=internal, status=status):
+                    with self.subTest(workflow=name, route=route, status=status):
+                        env = {
+                            **os.environ,
+                            "IS_INTERNAL": is_internal,
+                            "IS_DEPENDABOT": is_dependabot,
+                            "FORK_RESULT": "skipped",
+                            "DEPENDABOT_RESULT": "skipped",
+                            "INTERNAL_RESULT": "skipped",
+                        }
+                        env[selected_result] = status
                         result = subprocess.run(
                             ["bash", "-e", "-c", step["run"]],
-                            env={
-                                **os.environ,
-                                "IS_INTERNAL": internal,
-                                "FORK_RESULT": (
-                                    status if internal == "false" else "skipped"
-                                ),
-                                "INTERNAL_RESULT": (
-                                    status if internal == "true" else "skipped"
-                                ),
-                            },
+                            env=env,
                             capture_output=True,
                         )
                         self.assertEqual(result.returncode == 0, status == "success")
@@ -245,6 +280,16 @@ class ForkCostPolicyTests(unittest.TestCase):
         self.commit()
         result = self.run_policy(base=advanced_base)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+
+class DependabotCostPolicyTests(ForkCostPolicyTests):
+    """The dedicated no-secret Dependabot path obeys the same fail-closed diff policy."""
+
+    def setUp(self):
+        super().setUp()
+        self.script = workflow("infracost.yml")["jobs"]["dependabot-cost-policy"][
+            "steps"
+        ][1]["run"]
 
 
 if __name__ == "__main__":
