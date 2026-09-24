@@ -13,17 +13,21 @@ permissions:
 jobs:
   infracost:
     name: run infracost
-    needs: [fork-cost-policy, internal-infracost]
+    needs: [fork-cost-policy, dependabot-cost-policy, internal-infracost]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require the applicable cost check to pass
         env:
-          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]' }}
+          IS_DEPENDABOT: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'dependabot[bot]' }}
           FORK_RESULT: ${{ needs.fork-cost-policy.result }}
+          DEPENDABOT_RESULT: ${{ needs.dependabot-cost-policy.result }}
           INTERNAL_RESULT: ${{ needs.internal-infracost.result }}
         run: |
-          if [ "$IS_INTERNAL" = "true" ]; then
+          if [ "$IS_DEPENDABOT" = "true" ]; then
+            test "$DEPENDABOT_RESULT" = "success"
+          elif [ "$IS_INTERNAL" = "true" ]; then
             test "$INTERNAL_RESULT" = "success"
           else
             test "$FORK_RESULT" = "success"
@@ -89,9 +93,69 @@ jobs:
           print("No Terraform cost inputs changed; no Infracost key required.")
           PY
 
+  dependabot-cost-policy:
+    name: Check Dependabot cost inputs
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Dependabot PR for read-only comparison
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Require a trusted cost estimate for Terraform changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import PurePosixPath
+          import subprocess
+          import sys
+
+          head = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"], text=True
+          ).strip()
+          if head != os.environ["HEAD_SHA"]:
+              sys.exit("PR head changed; rerun the cost check.")
+          # Disable rename detection so both old and new paths are checked.
+          # A missing commit or merge base fails closed via check_output.
+          changed = subprocess.check_output([
+              "git", "diff", "--name-only", "--no-renames", "-z",
+              f'{os.environ["BASE_SHA"]}...{head}',
+          ]).decode("utf-8", errors="surrogateescape").split("\0")
+          cost_paths = []
+          for path in filter(None, changed):
+              name = PurePosixPath(path).name.lower()
+              if (
+                  path.startswith("terraform/")
+                  or name.endswith((
+                      ".tf", ".tf.json", ".tfvars", ".tfvars.json",
+                      ".hcl", ".tfplan",
+                  ))
+                  or name == "plan.json"
+                  or (
+                      "infracost" in name
+                      and name.endswith((".yml", ".yaml", ".json"))
+                      and not path.startswith(".github/workflows/")
+                  )
+              ):
+                  cost_paths.append(path)
+          if cost_paths:
+              print("Terraform cost inputs changed:", repr(cost_paths))
+              sys.exit(
+                  "Dependabot PRs cannot use INFRACOST_API_KEY. "
+                  "A trusted internal PR must run the cost estimate."
+              )
+          print("No Terraform cost inputs changed; no Infracost key required.")
+          PY
+
   internal-infracost:
     name: Estimate internal PR costs
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
