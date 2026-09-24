@@ -19,6 +19,9 @@ DEPENDABOT = (
     "github.event.pull_request.head.repo.full_name == github.repository && "
     "github.event.pull_request.user.login == 'dependabot[bot]'"
 )
+READ_ONLY_DOCS = (
+    FORK + " || " + "github.event.pull_request.user.login == 'dependabot[bot]'"
+)
 
 
 def workflow(name):
@@ -87,10 +90,10 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         for command in ("infracost breakdown", "infracost diff", "infracost comment"):
             self.assertIn(command, commands)
 
-    def test_fork_docs_uses_immutable_head_without_credentials_or_push(self):
+    def test_untrusted_docs_uses_immutable_head_without_credentials_or_push(self):
         jobs = workflow("tf_docs.yml")["jobs"]
         fork = jobs["fork-terraform-docs"]
-        self.assertEqual(fork["if"], FORK)
+        self.assertEqual(fork["if"], READ_ONLY_DOCS)
         self.assertNotIn("permissions", fork)
         self.assertNotIn("secrets.", str(fork))
         checkout, render = fork["steps"]
@@ -105,7 +108,7 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         self.assertEqual(render["with"]["fail-on-diff"], "true")
         self.assertEqual(render["with"]["output-file"], "README.md")
         internal = jobs["internal-terraform-docs"]
-        self.assertEqual(internal["if"], INTERNAL)
+        self.assertEqual(internal["if"], TRUSTED_INTERNAL)
         self.assertEqual(internal["permissions"], {"contents": "write"})
         self.assertEqual(internal["steps"][1]["with"]["git-push"], "true")
 
@@ -140,10 +143,10 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
                 )
             else:
                 self.assertEqual(len(job["needs"]), 2)
-                self.assertEqual(step["env"]["IS_INTERNAL"], "${{ " + INTERNAL + " }}")
+                self.assertEqual(step["env"]["IS_INTERNAL"], "${{ " + TRUSTED_INTERNAL + " }}")
                 routes = (
                     ("internal", "true", "false", "INTERNAL_RESULT"),
-                    ("fork", "false", "false", "FORK_RESULT"),
+                    ("fork_or_dependabot", "false", "false", "FORK_RESULT"),
                 )
             for route, is_internal, is_dependabot, selected_result in routes:
                 for status in ("success", "failure", "cancelled", "skipped"):
