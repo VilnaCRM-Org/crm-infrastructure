@@ -91,7 +91,26 @@ case "$*" in
       *) exit 1 ;;
     esac
     ;;
-  *'-n'*) printf '{"token":"redacted","expires_at":"%s"}\\n' "$FAKE_EXPIRES_AT" ;;
+  *'-n'*)
+    token=''
+    expires_at=''
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --arg)
+          [ "$#" -ge 3 ] || exit 2
+          case "$2" in
+            token) token=$3 ;;
+            expires_at) expires_at=$3 ;;
+          esac
+          shift 3
+          ;;
+        *) shift ;;
+      esac
+    done
+    [ "$token" = "$FAKE_TOKEN" ] || { echo 'unexpected token argument' >&2; exit 2; }
+    [ "$expires_at" = "$FAKE_EXPIRES_AT" ] || { echo 'unexpected expiry argument' >&2; exit 2; }
+    printf '{"token":"%s","expires_at":"%s"}\\n' "$token" "$expires_at"
+    ;;
   *) exit 2 ;;
 esac
 """,
@@ -115,7 +134,27 @@ case "$*" in
     esac
     ;;
   *'put-secret-value'*)
-    printf '%s\\n' "$FAKE_SECRET_ID" >> "$FAKE_PUT_LOG"
+    secret_id=''
+    secret_string=''
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --secret-id)
+          [ "$#" -ge 2 ] || exit 2
+          secret_id=$2
+          shift 2
+          ;;
+        --secret-string)
+          [ "$#" -ge 2 ] || exit 2
+          secret_string=$2
+          shift 2
+          ;;
+        *) shift ;;
+      esac
+    done
+    [ "$secret_id" = "$FAKE_SECRET_ID" ] || { echo 'unexpected secret ID' >&2; exit 2; }
+    expected=$(printf '{"token":"%s","expires_at":"%s"}' "$FAKE_TOKEN" "$FAKE_EXPIRES_AT")
+    [ "$secret_string" = "$expected" ] || { echo 'unexpected secret payload' >&2; exit 2; }
+    printf '%s\\n' "$secret_id" >> "$FAKE_PUT_LOG"
     ;;
   *) exit 2 ;;
 esac
@@ -157,6 +196,47 @@ esac
         self.assertEqual(puts, [NEWEST_SECRET])
         self.assertIn(f"Found secret: {NEWEST_SECRET}", result.stdout)
         self.assertNotIn(SYNTHETIC_TOKEN, result.stdout + result.stderr)
+
+    def test_fake_writer_rejects_wrong_secret_or_token_without_logging(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fake_bin = Path(directory) / "bin"
+            fake_bin.mkdir()
+            self.write_fakes(fake_bin)
+            put_log = Path(directory) / "put.log"
+            environment = os.environ | {
+                "FAKE_TOKEN": SYNTHETIC_TOKEN,
+                "FAKE_EXPIRES_AT": "valid",
+                "FAKE_SECRET_ID": NEWEST_SECRET,
+                "FAKE_PUT_LOG": str(put_log),
+            }
+            for secret_id, token in (
+                (NEWEST_SECRET + "-wrong", SYNTHETIC_TOKEN),
+                (NEWEST_SECRET, "wrong-token"),
+            ):
+                with self.subTest(
+                    secret_id=secret_id, token_is_correct=token == SYNTHETIC_TOKEN
+                ):
+                    payload = json.dumps(
+                        {"token": token, "expires_at": "valid"}, separators=(",", ":")
+                    )
+                    result = subprocess.run(
+                        [
+                            str(fake_bin / "aws"),
+                            "secretsmanager",
+                            "put-secret-value",
+                            "--secret-id",
+                            secret_id,
+                            "--secret-string",
+                            payload,
+                        ],
+                        env=environment,
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertFalse(put_log.exists())
+                    self.assertNotIn(SYNTHETIC_TOKEN, result.stdout + result.stderr)
 
     def test_bad_secret_selection_never_writes_or_prints_token(self):
         for selected in ("null", "[]", "{}", '""', '"one"\n"two"', "{"):
