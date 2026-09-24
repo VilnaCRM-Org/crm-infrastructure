@@ -10,6 +10,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 INTERNAL = "github.event.pull_request.head.repo.full_name == github.repository"
+TRUSTED_INTERNAL = (
+    "github.event.pull_request.head.repo.full_name == github.repository && "
+    "github.event.pull_request.user.login != 'dependabot[bot]'"
+)
 FORK = "github.event.pull_request.head.repo.full_name != github.repository"
 
 
@@ -30,10 +34,10 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         job = workflow("super-linter.yml")["jobs"]["lint"]
         self.assertNotIn("permissions", job)
         token, checkout, lint, commit = job["steps"]
-        self.assertEqual(token["if"], INTERNAL)
+        self.assertEqual(token["if"], TRUSTED_INTERNAL)
         self.assertIn("secrets.VILNACRM_APP_PRIVATE_KEY", str(token))
         self.assertEqual(
-            checkout["with"]["persist-credentials"], "${{ " + INTERNAL + " }}"
+            checkout["with"]["persist-credentials"], "${{ " + TRUSTED_INTERNAL + " }}"
         )
         for value in (
             checkout["with"]["token"],
@@ -45,8 +49,8 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         flags = [key for key in lint["env"] if key.startswith("FIX_")]
         self.assertEqual(len(flags), 5)
         for flag in flags + ["MULTI_STATUS"]:
-            self.assertEqual(lint["env"][flag], "${{ " + INTERNAL + " }}")
-        self.assertTrue(commit["if"].startswith(INTERNAL + " &&"))
+            self.assertEqual(lint["env"][flag], "${{ " + TRUSTED_INTERNAL + " }}")
+        self.assertTrue(commit["if"].startswith(TRUSTED_INTERNAL + " &&"))
         self.assertEqual(commit["uses"], "stefanzweifel/git-auto-commit-action@v5")
 
     def test_infracost_secrets_and_comment_writes_are_internal_only(self):
