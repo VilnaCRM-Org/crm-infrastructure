@@ -16,10 +16,14 @@ module "cloudfront" {
   cloudfront_configuration          = var.cloudfront_configuration
   cloudfront_custom_error_responses = var.cloudfront_custom_error_responses
 
-  enable_access_logging     = var.enable_access_logging
-  enable_cloudfront_staging = var.enable_cloudfront_staging
-  enable_cloudwatch_alarms  = var.enable_cloudwatch_alarms
-  enable_waf                = var.enable_waf
+  enable_access_logging               = var.enable_access_logging
+  enable_cloudfront_staging           = var.enable_cloudfront_staging
+  enable_cloudwatch_alarms            = var.enable_cloudwatch_alarms
+  enable_waf                          = var.enable_waf
+  shared_waf_web_acl_name             = var.shared_waf_web_acl_name
+  retain_dedicated_waf                = var.retain_dedicated_waf
+  attach_continuous_deployment_policy = var.attach_continuous_deployment_policy
+  enable_origin_latency_alarms        = var.enable_origin_latency_alarms
 
   continuous_deployment_policy_type   = var.continuous_deployment_policy_type
   continuous_deployment_policy_weight = var.continuous_deployment_policy_weight

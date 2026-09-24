@@ -1,5 +1,12 @@
+data "aws_wafv2_web_acl" "shared" {
+  count    = local.use_shared_waf ? 1 : 0
+  provider = aws.us-east-1
+  name     = var.shared_waf_web_acl_name
+  scope    = "CLOUDFRONT"
+}
+
 resource "aws_wafv2_web_acl" "waf_web_acl" {
-  count    = var.enable_waf ? 1 : 0
+  count    = local.create_dedicated_waf ? 1 : 0
   provider = aws.us-east-1
   name     = "wafv2-web-acl-crm"
   scope    = "CLOUDFRONT"
@@ -117,7 +124,7 @@ resource "aws_wafv2_web_acl" "waf_web_acl" {
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "waf_web_acl_logging" {
-  count                   = var.enable_waf ? 1 : 0
+  count                   = local.create_dedicated_waf ? 1 : 0
   provider                = aws.us-east-1
   log_destination_configs = [aws_cloudwatch_log_group.waf_web_acl_log_group[0].arn]
   resource_arn            = aws_wafv2_web_acl.waf_web_acl[0].arn

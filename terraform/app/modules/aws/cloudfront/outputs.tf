@@ -24,12 +24,12 @@ output "cloudwatch_sns_topic_arn" {
 }
 
 output "waf_web_acl_name" {
-  value       = var.enable_waf ? aws_wafv2_web_acl.waf_web_acl[0].name : null
+  value       = local.waf_web_acl_name
   description = "Name of the WAF2 Web ACL Of Distribution"
 }
 
 output "waf_log_group_name" {
-  value       = var.enable_waf ? aws_cloudwatch_log_group.waf_web_acl_log_group[0].name : null
+  value       = !var.enable_waf ? null : (local.use_shared_waf ? "aws-waf-logs-wafv2-web-acl" : aws_cloudwatch_log_group.waf_web_acl_log_group[0].name)
   description = "Name of the WAF2 Log Group"
 }
 

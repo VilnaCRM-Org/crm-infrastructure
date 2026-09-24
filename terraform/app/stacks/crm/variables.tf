@@ -104,6 +104,41 @@ variable "enable_cloudwatch_alarms" {
   type        = bool
 }
 
+variable "enable_origin_latency_alarms" {
+  description = "Opt in only after CloudFront additional metrics are provisioned"
+  type        = bool
+  default     = false
+}
+
+variable "enable_storage_anomaly_alarms" {
+  description = "Opt in to S3 and notification-Lambda anomaly alarms after verifying metric dimensions, request metrics and sufficient traffic"
+  type        = bool
+  default     = false
+}
+
+variable "shared_waf_web_acl_name" {
+  description = "Optional website-owned CloudFront ACL in this account; migrate in stages described in docs/cost-optimization.md"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.shared_waf_web_acl_name == null ? true : var.shared_waf_web_acl_name == "wafv2-web-acl"
+    error_message = "Only the website-owned wafv2-web-acl is supported."
+  }
+}
+
+variable "retain_dedicated_waf" {
+  description = "Retain the old CRM ACL and logging during shared-ACL migration; disable only after deployed associations are verified"
+  type        = bool
+  default     = true
+}
+
+variable "attach_continuous_deployment_policy" {
+  description = "Attach the staging policy to the primary distribution; temporarily false during the staged WAF migration"
+  type        = bool
+  default     = true
+}
+
 variable "enable_waf" {
   description = "Whether to create and attach the crm WAF web ACL"
   type        = bool

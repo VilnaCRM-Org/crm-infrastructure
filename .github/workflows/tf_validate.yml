@@ -21,3 +21,17 @@ jobs:
       - name: Validate failed
         if: ${{ failure() && steps.validate.outputs.failure-reason == 'validate-failed' }}
         run: echo "terraform validate failed"
+
+  cloudfront-cost-controls:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.3
+      - name: Initialize isolated CloudFront module
+        run: terraform -chdir=terraform/app/modules/aws/cloudfront init -backend=false -input=false
+      - name: Test cost controls with mocked AWS providers
+        run: terraform -chdir=terraform/app/modules/aws/cloudfront test
