@@ -53,8 +53,13 @@ else:
 
 class TokenLoaderTests(unittest.TestCase):
     def run_loader(
-        self, secret, *, sequence=None, settings=None, trace_shell=False,
-        selector_json=None
+        self,
+        secret,
+        *,
+        sequence=None,
+        settings=None,
+        trace_shell=False,
+        selector_json=None,
     ):
         # Do not inherit credentials or a pre-exported GITHUB_TOKEN from the host.
         with tempfile.TemporaryDirectory() as directory:

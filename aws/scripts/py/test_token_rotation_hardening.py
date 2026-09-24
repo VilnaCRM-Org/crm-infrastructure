@@ -160,9 +160,7 @@ esac
     def test_bad_secret_selection_never_writes_or_prints_token(self):
         for selected in ("null", "[]", "{}", '""', '"one"\n"two"', "{"):
             with self.subTest(selected=selected):
-                result, puts = self.run_rotation(
-                    "valid", selector_json=selected
-                )
+                result, puts = self.run_rotation("valid", selector_json=selected)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("No active secret found", result.stdout)
                 self.assertEqual(puts, [])
