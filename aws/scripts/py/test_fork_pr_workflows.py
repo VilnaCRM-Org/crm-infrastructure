@@ -97,7 +97,6 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
         self.assertEqual(
             checkout["with"],
             {
-                "repository": "${{ github.event.pull_request.head.repo.full_name }}",
                 "ref": "${{ github.event.pull_request.head.sha }}",
                 "persist-credentials": "false",
             },

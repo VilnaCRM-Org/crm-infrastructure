@@ -50,6 +50,7 @@ class TokenRotationHardeningTests(unittest.TestCase):
                 ["bash", "-x", str(SCRIPT)],
                 cwd=ROOT,
                 env=environment,
+                stdin=subprocess.DEVNULL,
                 text=True,
                 capture_output=True,
                 check=False,
