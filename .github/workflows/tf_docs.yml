@@ -4,11 +4,52 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   terraform-docs:
+    needs: [fork-terraform-docs, internal-terraform-docs]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Require the applicable docs check to pass
+        env:
+          IS_INTERNAL: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]' }}
+          FORK_RESULT: ${{ needs.fork-terraform-docs.result }}
+          INTERNAL_RESULT: ${{ needs.internal-terraform-docs.result }}
+        run: |
+          if [ "$IS_INTERNAL" = "true" ]; then
+            test "$INTERNAL_RESULT" = "success"
+          else
+            test "$FORK_RESULT" = "success"
+          fi
+
+  fork-terraform-docs:
+    if: github.event.pull_request.head.repo.full_name != github.repository || github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify generated Terraform README is current
+        uses: terraform-docs/gh-actions@v1.0.0
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: "false"
+          fail-on-diff: "true"
+
+  internal-terraform-docs:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 

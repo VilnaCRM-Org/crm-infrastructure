@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "0 * * * *"
-    - cron: "50 * * * *"
+    # Renew every 30 minutes, staggered from TEST to avoid competing jobs.
+    - cron: "26 * * * *"
+    - cron: "56 * * * *"
   workflow_dispatch: {}
   repository_dispatch:
     types: [rotate_token_prod]
@@ -18,7 +19,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     concurrency:
       group: github-token-rotation-prod
-      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
