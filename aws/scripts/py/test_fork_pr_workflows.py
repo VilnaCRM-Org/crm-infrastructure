@@ -143,7 +143,9 @@ class ForkWorkflowPermissionsTests(unittest.TestCase):
                 )
             else:
                 self.assertEqual(len(job["needs"]), 2)
-                self.assertEqual(step["env"]["IS_INTERNAL"], "${{ " + TRUSTED_INTERNAL + " }}")
+                self.assertEqual(
+                    step["env"]["IS_INTERNAL"], "${{ " + TRUSTED_INTERNAL + " }}"
+                )
                 routes = (
                     ("internal", "true", "false", "INTERNAL_RESULT"),
                     ("fork_or_dependabot", "false", "false", "FORK_RESULT"),
