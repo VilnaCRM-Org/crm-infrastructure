@@ -48,7 +48,7 @@ phases:
         export CRM_DIR="${CRM_DIR:-/codebuild-user/crm}"
         cd "$CRM_DIR"
         echo "=== Building Docker image ==="
-        if make -n build-out-sandbox >/dev/null 2>&1; then
+        if grep -qE '^build-out-sandbox:' Makefile; then
           make build-out-sandbox
         else
           echo "crm branch has no build-out-sandbox target; building the production bundle"
