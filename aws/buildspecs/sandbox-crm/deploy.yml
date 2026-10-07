@@ -48,7 +48,12 @@ phases:
         export CRM_DIR="${CRM_DIR:-/codebuild-user/crm}"
         cd "$CRM_DIR"
         echo "=== Building Docker image ==="
-        make build-out
+        if make -n build-out-sandbox >/dev/null 2>&1; then
+          make build-out-sandbox
+        else
+          echo "crm branch has no build-out-sandbox target; building the production bundle"
+          make build-out
+        fi
         . "${CODEBUILD_SRC_DIR}/aws/scripts/sh/sanitize_branch.sh"
         echo "=== Verifying build output ==="
         ls -la ./out
